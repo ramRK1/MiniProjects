@@ -73,6 +73,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,rando
 
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import log_loss
+from sklearn.metrics import confusion_matrix
 
 # PREDICTION : Accuracy Score
 def acc_score(y_test, y_pred ) :
@@ -84,8 +85,15 @@ def log_loss(y_test, y_pred ) :
     acc = log_loss(y_test, y_pred)
     return print("Final Accuracy: %0.04f" %(acc))    
 
-acc_score(y_test, y_pred )
-log_loss(y_test, y_pred )
+# PREDICTION : Confusion Matrix
+def conf_matrix(y_test, y_pred ) :
+    acc = confusion_matrix(y_test, y_pred)
+    acc_1 = np.sum(np.diagonal(np.asarray(acc)))/np.sum(acc)
+    return print("Final Accuracy # Confusion_Matrix: %0.04f" %(acc_1))
+
+# acc_score(y_test, y_pred )
+# log_loss(y_test, y_pred )
+# conf_matrix(y_test, y_pred )
 
 #*****************************************************************************
 #*****************************************************************************
@@ -101,6 +109,7 @@ y_pred = classifier_1.predict(X_test)
 
 # Accuracy of the model
 acc_score(y_test, y_pred )
+conf_matrix(y_test, y_pred )
 # Final Accuracy: 0.8840 BOW Model
 # Final Accuracy: 0.8264 tf-idf min_df = 0 & ngram =(1,3)
 # Final Accuracy: 0.8350 tf-idf min_df = 2 & ngram =(1,3)
@@ -395,16 +404,3 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 # Accuracy of Extratrees classifier on test set: 0.7995
 
 #******************************************************************************
-
-        
-
-
-
-
-
-
-    
-    
-    
-    
-    
