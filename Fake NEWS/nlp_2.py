@@ -122,7 +122,6 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
-from subprocess import check_output
 
 stopwords = set(STOPWORDS)
 wordcloud = WordCloud(

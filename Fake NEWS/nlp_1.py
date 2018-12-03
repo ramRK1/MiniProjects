@@ -267,7 +267,6 @@ for param_name in sorted(param_grid.keys()):
 
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
-from subprocess import check_output
 
 stopwords = set(STOPWORDS)
 wordcloud = WordCloud(
