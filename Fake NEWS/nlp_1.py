@@ -274,15 +274,19 @@ wordcloud = WordCloud(
                           background_color='white',
                           stopwords=stopwords,
                           max_words=200,
-                          max_font_size=40, 
-                          random_state=42
+                          max_font_size=80,min_font_size=20, 
+                          random_state=42,
+                          width=1100, height=700, margin=0
                          ).generate(str(dataset['total']))
 
 
-plt.imshow(wordcloud)
+plt.imshow(wordcloud,interpolation='bilinear')
 plt.axis("off")
+plt.margins(x=0, y=0)
+plt.savefig('wc_1.png',dpi = 200)
+# plt.show() must be after plt.savefig() as clears the whole thing, 
+# so anything afterwards  will happen on a new empty figure.
 plt.show()
-
 
 #******************************************************************************
 #******************************************************************************

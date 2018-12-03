@@ -8,6 +8,10 @@ dataset = pd.read_csv('train.csv')
 dataset.info()
 # finding the dimensions
 print(dataset.shape)
+
+# Combining Both title and text
+dataset['total']=dataset['author']+' '+dataset['title']+' '+dataset['text']
+
 #******************************************************************************
 # TRAINING SET
 # Cleaning the texts
@@ -19,7 +23,7 @@ from nltk.stem.porter import PorterStemmer
 corpus = []
 for i in range(20800):
     # REMOVE PUNTUATIONS AND ANY CHARACTER OTHER THAN ALPHABET
-    review = re.sub('[^a-zA-Z]', ' ', str(dataset['title'][i]))
+    review = re.sub('[^a-zA-Z]', ' ', str(dataset['total'][i]))
     review = review.lower()
     review = review.split()
     # Stemming object
@@ -113,7 +117,31 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 # 0.9252
 #******************************************************************************
 
+# WORD CLOUD
+# conda install -c conda-forge wordcloud
 
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud, STOPWORDS
+from subprocess import check_output
+
+stopwords = set(STOPWORDS)
+wordcloud = WordCloud(
+                          background_color='white',
+                          stopwords=stopwords,
+                          max_words=200,
+                          max_font_size=80,min_font_size=20, 
+                          random_state=42,
+                          width=1100, height=700, margin=0
+                         ).generate(str(dataset['total']))
+
+
+plt.imshow(wordcloud,interpolation='bilinear')
+plt.axis("off")
+plt.margins(x=0, y=0)
+plt.savefig('wc_2.png',dpi = 200)
+# plt.show() must be after plt.savefig() as clears the whole thing, 
+# so anything afterwards  will happen on a new empty figure.
+plt.show()
 
 
 

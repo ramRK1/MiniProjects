@@ -169,3 +169,31 @@ print('Accuracy of RandomForest classifier on test set: %0.04f'
 # Accuracy of RandomForest classifier on test set: 0.8981 tfidf
 
 #******************************************************************************
+
+# WORD CLOUD
+# conda install -c conda-forge wordcloud
+
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud, STOPWORDS
+from subprocess import check_output
+
+stopwords = set(STOPWORDS)
+new_words = ['NaN']
+new_stopwords=stopwords.union(new_words)
+wordcloud = WordCloud(
+                          background_color='white',
+                          stopwords=new_stopwords,
+                          max_words=300,
+                          max_font_size=80,min_font_size=10, 
+                          random_state=42,
+                          width=1100, height=700, margin=0
+                         ).generate(str(dataset['total']))
+
+
+plt.imshow(wordcloud,interpolation='bilinear')
+plt.axis("off")
+plt.margins(x=0, y=0)
+plt.savefig('wc_3.png',dpi = 200)
+# plt.show() must be after plt.savefig() as clears the whole thing, 
+# so anything afterwards  will happen on a new empty figure.
+plt.show()
