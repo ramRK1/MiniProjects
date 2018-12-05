@@ -413,7 +413,7 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 from sklearn.model_selection import GridSearchCV
 
 # parameters for GridSearchCV
-param_grid = {"n_estimators": [10, 18, 22],
+param_grid = {"n_estimators": [4,5,6],
               "max_depth": [3, 5],
               "min_samples_split": [15, 20],
               "min_samples_leaf": [5, 10, 20],
@@ -432,25 +432,29 @@ best_accuracy = grid_search.best_score_
 best_parameters = grid_search.best_params_
 
 print(" BEST ACCURACY IS :%0.04f" %(best_accuracy))
-print(" BEST PARAMETERS IS :%0.04f" %(best_parameters))
+print(" BEST PARAMETERS IS :\n" ,best_parameters)
 
 
 #******************************************************************************
 #******************************************************************************
 
+# SENTIMENT ANALYSIS 
 from textblob import TextBlob
-l=input()
+l=dataset['total'][1]
 text=TextBlob(l)
 if(text.sentiment.polarity>0 and text.sentiment.subjectivity>0.5):
-    print("objective opinion (%s) with positive polarity %0.04f" %(text.sentiment.subjectivity,text.sentiment.polarity))
+    print("\n General Opinion(Subjective) with positive Sentiment ")
 if(text.sentiment.polarity<0 and text.sentiment.subjectivity>0.5):
-    print("objective opinion (%s) with negative polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+    print("\n General Opinion(Subjective) with Negative Sentiment ")
 if(text.sentiment.polarity>0 and text.sentiment.subjectivity<0.5):
-    print("subjective opinion(%s) with positive polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+    print("\n Personal Opinion(Objective) with positive Sentiment ")
 if(text.sentiment.polarity<0 and text.sentiment.subjectivity<0.5):
-    print("subjective opinion (%s) with negative polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+    print("\n Personal Opinion(Objective) with Negative Sentiment ")
 if(text.sentiment.polarity==0):
-    print("neutral")
+    print("\n neutral")
+    
+#******************************************************************************
+#******************************************************************************
     
     
 
