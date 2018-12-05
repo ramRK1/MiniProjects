@@ -413,12 +413,12 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 from sklearn.model_selection import GridSearchCV
 
 # parameters for GridSearchCV
-param_grid = {"n_estimators": [4,5,6],
-              "max_depth": [3, 5],
-              "min_samples_split": [15, 20],
-              "min_samples_leaf": [5, 10, 20],
+param_grid = {"n_estimators": [5,6,7,8],
+              "max_depth": [2,3,4],
+              "min_samples_split": [2,3],
+              "min_samples_leaf": [1,2,3],
               "max_leaf_nodes": [20, 40],
-              "min_weight_fraction_leaf": [0.1]}
+              }
 
 grid_search = GridSearchCV(estimator = classifier,
                            param_grid = param_grid,
