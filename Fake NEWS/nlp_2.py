@@ -89,6 +89,12 @@ print('Accuracy of NB classifier on test set:%0.04f'
 from sklearn.ensemble import ExtraTreesClassifier
                             
 Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Extr.get_params())
+
 Extr.fit(X_train, y_train)
 
 print('Accuracy of Extratrees classifier on test set: %0.04f'
@@ -99,6 +105,12 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 
 Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Adab.get_params())
+
 Adab.fit(X_train, y_train)
 
 print('Accuracy of Extratrees classifier on test set: %0.04f'
@@ -109,12 +121,44 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 from sklearn.ensemble import RandomForestClassifier
 Rando= RandomForestClassifier(n_estimators=5)
 
-Rando.fit(X_train, y_train)
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Rando.get_params())  
+
+
+classifier = Rando.fit(X_train, y_train)
 
 print('Accuracy of Extratrees classifier on test set: %0.04f'
      %(Rando.score(X_test, y_test)))
 
-# 0.9252
+# 0.8524
+
+from sklearn.model_selection import GridSearchCV
+
+# parameters for GridSearchCV
+param_grid = {"n_estimators": [5,6,7,8],
+              "max_depth": [2,3,4],
+              "min_samples_split": [2,3,4,5],
+              "min_samples_leaf": [1,2,3],
+              "max_leaf_nodes": [20, 40,],
+              }
+
+grid_search = GridSearchCV(estimator = classifier,
+                           param_grid = param_grid,
+                           scoring = 'accuracy',
+                           cv = 5,
+                           n_jobs = -1)
+
+grid_search.fit(X_train,y_train)
+
+best_accuracy = grid_search.best_score_
+best_parameters = grid_search.best_params_
+
+print(" BEST ACCURACY IS :%0.04f" %(best_accuracy))
+print(" BEST PARAMETERS IS :\n" ,best_parameters)
+
+
 #******************************************************************************
 #******************************************************************************
 

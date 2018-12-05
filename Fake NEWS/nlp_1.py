@@ -193,6 +193,12 @@ classifier = xgb.XGBClassifier(max_depth=7,
                                nthread=10, 
                                learning_rate=0.1)
 
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(classifier.get_params())
+
+
 from scipy.sparse import csc_matrix
 # Converting to sparse data and running xgboost
 X_train_csc = csc_matrix(X_train)
@@ -366,29 +372,36 @@ test_sequences_matrix = sequence.pad_sequences(X_test_svd_scale,maxlen=max_len)
 # Accuracy of the model
 accr = model.evaluate(test_sequences_matrix,y_test)
 print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))       
-        
-        
-        
-######################
-#####################
-#####################
+
 
 #******************************************************************************
 
 from sklearn.ensemble import ExtraTreesClassifier
                             
 Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Extr.get_params())
+
 Extr.fit(X_train, y_train)
 
 score_ETC = Extr.score(X_test, y_test)
 print('Accuracy of Extratrees classifier on test set: %0.04f'%(score_ETC))
 
-# Accuracy of Extratrees classifier on test set: 0.8374
+# Accuracy of Extratrees classifier on test set: 0.8295
 #******************************************************************************
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 
 Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Adab.get_params())
+
 Adab.fit(X_train, y_train)
 
 score_ABC = Adab.score(X_test, y_test)
@@ -399,7 +412,13 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 #******************************************************************************
 #******************************************************************************
 from sklearn.ensemble import RandomForestClassifier
+
 Rando= RandomForestClassifier(n_estimators=5)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Rando.get_params())
 
 classifier = Rando.fit(X_train, y_train)
 
@@ -408,7 +427,7 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
      %(score_RFC))
 
 
-# Accuracy of Extratrees classifier on test set: 0.7995
+# Accuracy of Extratrees classifier on test set: 0.8137
 
 from sklearn.model_selection import GridSearchCV
 
