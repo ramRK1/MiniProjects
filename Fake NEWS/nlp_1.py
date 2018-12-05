@@ -91,7 +91,7 @@ def conf_matrix(y_test, y_pred ) :
     acc_CM = np.sum(np.diagonal(np.asarray(acc)))/np.sum(acc)
     return print("Final Accuracy # Confusion_Matrix: %0.04f" %(acc_CM))
 
-# acc_score(y_test, y_pred )
+# acc_score(y_test, y_pred )d
 # log_loss(y_test, y_pred )
 # conf_matrix(y_test, y_pred )
 
@@ -431,8 +431,31 @@ grid_search.fit(X_train,y_train)
 best_accuracy = grid_search.best_score_
 best_parameters = grid_search.best_params_
 
-print(" BEST ACCURACY IS :%0.04f",%())
+print(" BEST ACCURACY IS :%0.04f" %(best_accuracy))
+print(" BEST PARAMETERS IS :%0.04f" %(best_parameters))
 
 
 #******************************************************************************
 #******************************************************************************
+
+from textblob import TextBlob
+l=input()
+text=TextBlob(l)
+if(text.sentiment.polarity>0 and text.sentiment.subjectivity>0.5):
+    print("objective opinion (%s) with positive polarity %0.04f" %(text.sentiment.subjectivity,text.sentiment.polarity))
+if(text.sentiment.polarity<0 and text.sentiment.subjectivity>0.5):
+    print("objective opinion (%s) with negative polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+if(text.sentiment.polarity>0 and text.sentiment.subjectivity<0.5):
+    print("subjective opinion(%s) with positive polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+if(text.sentiment.polarity<0 and text.sentiment.subjectivity<0.5):
+    print("subjective opinion (%s) with negative polarity %0.04f"%(text.sentiment.subjectivity,text.sentiment.polarity))
+if(text.sentiment.polarity==0):
+    print("neutral")
+    
+    
+
+
+
+
+
+
