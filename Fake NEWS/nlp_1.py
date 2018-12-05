@@ -77,19 +77,19 @@ from sklearn.metrics import confusion_matrix
 
 # PREDICTION : Accuracy Score
 def acc_score(y_test, y_pred ) :
-    acc = accuracy_score(y_test, y_pred)
-    return print("Final Accuracy: %0.04f" %(acc))
+    acc_AS = accuracy_score(y_test, y_pred)
+    return print("Final Accuracy: %0.04f" %(acc_AS))
 
 # PREDICTION : Log-Loss
 def log_loss(y_test, y_pred ) :
-    acc = log_loss(y_test, y_pred)
-    return print("Final Accuracy: %0.04f" %(acc))    
+    acc_LL = log_loss(y_test, y_pred)
+    return print("Final Accuracy: %0.04f" %(acc_LL))    
 
 # PREDICTION : Confusion Matrix
 def conf_matrix(y_test, y_pred ) :
     acc = confusion_matrix(y_test, y_pred)
-    acc_1 = np.sum(np.diagonal(np.asarray(acc)))/np.sum(acc)
-    return print("Final Accuracy # Confusion_Matrix: %0.04f" %(acc_1))
+    acc_CM = np.sum(np.diagonal(np.asarray(acc)))/np.sum(acc)
+    return print("Final Accuracy # Confusion_Matrix: %0.04f" %(acc_CM))
 
 # acc_score(y_test, y_pred )
 # log_loss(y_test, y_pred )
@@ -380,8 +380,8 @@ from sklearn.ensemble import ExtraTreesClassifier
 Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
 Extr.fit(X_train, y_train)
 
-print('Accuracy of Extratrees classifier on test set: %0.04f'
-     %(Extr.score(X_test, y_test)))
+score_ETC = Extr.score(X_test, y_test)
+print('Accuracy of Extratrees classifier on test set: %0.04f'%(score_ETC))
 
 # Accuracy of Extratrees classifier on test set: 0.8374
 #******************************************************************************
@@ -391,19 +391,48 @@ from sklearn.ensemble import AdaBoostClassifier
 Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
 Adab.fit(X_train, y_train)
 
+score_ABC = Adab.score(X_test, y_test)
 print('Accuracy of Extratrees classifier on test set: %0.04f'
-     %(Adab.score(X_test, y_test)))
+     %(score_ABC))
 
 # Accuracy of Extratrees classifier on test set: 0.8224
+#******************************************************************************
 #******************************************************************************
 from sklearn.ensemble import RandomForestClassifier
 Rando= RandomForestClassifier(n_estimators=5)
 
-Rando.fit(X_train, y_train)
+classifier = Rando.fit(X_train, y_train)
 
+score_RFC = Rando.score(X_test, y_test)
 print('Accuracy of Extratrees classifier on test set: %0.04f'
-     %(Rando.score(X_test, y_test)))
+     %(score_RFC))
+
 
 # Accuracy of Extratrees classifier on test set: 0.7995
 
+from sklearn.model_selection import GridSearchCV
+
+# parameters for GridSearchCV
+param_grid = {"n_estimators": [10, 18, 22],
+              "max_depth": [3, 5],
+              "min_samples_split": [15, 20],
+              "min_samples_leaf": [5, 10, 20],
+              "max_leaf_nodes": [20, 40],
+              "min_weight_fraction_leaf": [0.1]}
+
+grid_search = GridSearchCV(estimator = classifier,
+                           param_grid = param_grid,
+                           scoring = 'accuracy',
+                           cv = 5,
+                           n_jobs = -1)
+
+grid_search.fit(X_train,y_train)
+
+best_accuracy = grid_search.best_score_
+best_parameters = grid_search.best_params_
+
+print(" BEST ACCURACY IS :%0.04f",%())
+
+
+#******************************************************************************
 #******************************************************************************

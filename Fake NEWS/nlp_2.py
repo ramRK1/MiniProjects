@@ -116,6 +116,7 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 
 # 0.9252
 #******************************************************************************
+#******************************************************************************
 
 # WORD CLOUD
 # conda install -c conda-forge wordcloud
@@ -143,6 +144,9 @@ plt.savefig('wc_2.png',dpi = 200)
 # plt.show() must be after plt.savefig() as clears the whole thing, 
 # so anything afterwards  will happen on a new empty figure.
 plt.show()
+
+#******************************************************************************
+#******************************************************************************
 
 
 
