@@ -13,7 +13,8 @@ print(dataset.shape)
 dataset['total']=dataset['author']+' '+dataset['title']+' '+dataset['text']
 
 #******************************************************************************
-# TRAINING SET
+#******************************************************************************
+
 # Cleaning the texts
 import re
 import nltk
@@ -37,6 +38,8 @@ for i in range(20800):
 #******************************************************************************
 #******************************************************************************
 
+# Model 1
+    
 # Creating the Bag of Words model
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -51,6 +54,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,rando
 #******************************************************************************
 #******************************************************************************
 
+# Model 2
+
 # TF-IDF MODEL
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -64,9 +69,12 @@ Y = dataset.iloc[:,4].values
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,random_state = 0)
 
+# ***Only one of the 2 models should be runned at a time
 
 #******************************************************************************
 #******************************************************************************
+
+# *** Applying Machine Learning Technique #1 ***
 
 # Fitting Naive Bayes to the Training set
 from sklearn.naive_bayes import MultinomialNB
@@ -81,43 +89,32 @@ print('Accuracy of NB classifier on test set:%0.04f'
 # 0.8837 tfidf ,min_df = 2
 # 0.8904 tfidf ,min_df = 5 and n_gram = 1 to 3
 
-# 0.8983 BOW
+# 0.9226 BOW
 
+#*****************************************************************************
+#*****************************************************************************
+
+# *** Applying Machine Learning Technique #2 ***
+
+# Fitting LOGISTIC REGRESSION to the Training set
+from sklearn.linear_model import LogisticRegression
+LR = LogisticRegression(random_state = 0)
+LR.fit(X_train, y_train)
+
+# Predicting the Test set results
+y_pred = LR.predict(X_test)
+
+# Accuracy Score
+print('Accuracy of LR classifier on test set:%0.04f'
+      %(LR.score(X_test, y_test)))
+
+# Accuracy of NB classifier on test set:0.9663
 
 #******************************************************************************
-
-from sklearn.ensemble import ExtraTreesClassifier
-                            
-Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
-
-from pprint import pprint
-# Look at parameters used by our current forest
-print('Parameters currently in use:\n')
-pprint(Extr.get_params())
-
-Extr.fit(X_train, y_train)
-
-print('Accuracy of Extratrees classifier on test set: %0.04f'
-     %(Extr.score(X_test, y_test)))
-# 0.9257
 #******************************************************************************
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
 
-Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
+# *** Applying Machine Learning Technique #3 ***
 
-from pprint import pprint
-# Look at parameters used by our current forest
-print('Parameters currently in use:\n')
-pprint(Adab.get_params())
-
-Adab.fit(X_train, y_train)
-
-print('Accuracy of Extratrees classifier on test set: %0.04f'
-     %(Adab.score(X_test, y_test)))
-
-# 0.9226
-#******************************************************************************
 from sklearn.ensemble import RandomForestClassifier
 Rando= RandomForestClassifier(n_estimators=5)
 
@@ -133,6 +130,10 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
      %(Rando.score(X_test, y_test)))
 
 # 0.8524
+
+#******************************************************************************
+
+# HYPERPARAMETER OPTIMIZATION --> GRID SEARCH <--
 
 from sklearn.model_selection import GridSearchCV
 
@@ -157,6 +158,85 @@ best_parameters = grid_search.best_params_
 
 print(" BEST ACCURACY IS :%0.04f" %(best_accuracy))
 print(" BEST PARAMETERS IS :\n" ,best_parameters)
+
+
+#******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #4 ***
+
+from sklearn.ensemble import ExtraTreesClassifier
+                            
+Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Extr.get_params())
+
+Extr.fit(X_train, y_train)
+
+print('Accuracy of Extratrees classifier on test set: %0.04f'
+     %(Extr.score(X_test, y_test)))
+# 0.9257
+
+#******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #5 ***
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+
+Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
+
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(Adab.get_params())
+
+Adab.fit(X_train, y_train)
+
+print('Accuracy of Extratrees classifier on test set: %0.04f'
+     %(Adab.score(X_test, y_test)))
+
+# 0.9226
+
+#******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #6 ***
+
+# XGBOOST METHOD
+
+import xgboost as xgb
+classifier = xgb.XGBClassifier(max_depth=7, 
+                               n_estimators=200, 
+                               colsample_bytree=0.8, 
+                               subsample=0.8, 
+                               nthread=10, 
+                               learning_rate=0.1)
+
+from pprint import pprint
+# Look at parameters used by our current Model
+print('Parameters currently in use:\n')
+pprint(classifier.get_params())
+
+
+from scipy.sparse import csc_matrix
+# Converting to sparse data and running xgboost
+X_train_csc = csc_matrix(X_train)
+X_test_csc = csc_matrix(X_test)
+
+classifier.fit(X_train_csc, y_train)
+y_pred = classifier.predict(X_test_csc)
+
+
+
+from sklearn.metrics import accuracy_score
+acc = accuracy_score(y_test, y_pred)
+print("Accuracy: %.4f%%" % (acc * 100.0))
+
 
 
 #******************************************************************************

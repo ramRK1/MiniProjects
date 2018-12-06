@@ -15,7 +15,6 @@ dataset['total']=dataset['title']+' '+dataset['text']
 
 #******************************************************************************
 #******************************************************************************
-#******************************************************************************
 
 # Cleaning the texts
 import re
@@ -39,8 +38,8 @@ for i in range(6335):
 
 #******************************************************************************
 #******************************************************************************
-#******************************************************************************
     
+# MODEL 1    
 # Creating BAG OF WORDS MODEL :
     
 from sklearn.feature_extraction.text import CountVectorizer
@@ -49,6 +48,7 @@ X = cv.fit_transform(corpus).toarray()
 
 #*****************************************************************************
 
+# MODEL 2
 # Creating TF-IDF MODEL :
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -57,6 +57,8 @@ X =  tf.fit_transform(corpus)
 feature_names = tf.get_feature_names()
 
 #*****************************************************************************
+
+# Should be run after running any of Model 1 and Model 2
 
 Y = dataset.iloc[:,3].values
 # Encoding categorical data
@@ -70,6 +72,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,rando
 
 #*****************************************************************************
 #*****************************************************************************
+# Model Performance Evaluation Metrices
 
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import log_loss
@@ -78,25 +81,27 @@ from sklearn.metrics import confusion_matrix
 # PREDICTION : Accuracy Score
 def acc_score(y_test, y_pred ) :
     acc_AS = accuracy_score(y_test, y_pred)
-    return print("Final Accuracy: %0.04f" %(acc_AS))
+    return print("Accuracy: %.2f%%" % (acc_AS * 100.0))
 
 # PREDICTION : Log-Loss
 def log_loss(y_test, y_pred ) :
     acc_LL = log_loss(y_test, y_pred)
-    return print("Final Accuracy: %0.04f" %(acc_LL))    
+    return print("Accuracy: %.2f%%" % (acc_LL * 100.0))   
 
 # PREDICTION : Confusion Matrix
 def conf_matrix(y_test, y_pred ) :
     acc = confusion_matrix(y_test, y_pred)
     acc_CM = np.sum(np.diagonal(np.asarray(acc)))/np.sum(acc)
-    return print("Final Accuracy # Confusion_Matrix: %0.04f" %(acc_CM))
+    return print("Accuracy: %.2f%%" % (acc_CM * 100.0))
 
-# acc_score(y_test, y_pred )d
+# acc_score(y_test, y_pred )
 # log_loss(y_test, y_pred )
 # conf_matrix(y_test, y_pred )
 
 #*****************************************************************************
 #*****************************************************************************
+
+# *** Applying Machine Learning Technique #1 ***
 
 # Fitting NAIVE BAYES to the Training set
 
@@ -115,6 +120,9 @@ conf_matrix(y_test, y_pred )
 # Final Accuracy: 0.8350 tf-idf min_df = 2 & ngram =(1,3)
 
 #*****************************************************************************
+#*****************************************************************************
+
+# *** Applying Machine Learning Technique #2 ***
 
 # Fitting LOGISTIC REGRESSION to the Training set
 from sklearn.linear_model import LogisticRegression
@@ -131,7 +139,9 @@ acc_score(y_test, y_pred )
 #******************************************************************************
 #******************************************************************************
 
-# Apply SVD
+# *** Applying Machine Learning Technique #3 ***
+
+# Apply SVD( Singular Value Decomposition )
 
 from sklearn import decomposition
 from sklearn.decomposition import TruncatedSVD
@@ -142,7 +152,8 @@ svd.fit(X_train)
 X_train_svd = svd.transform(X_train)
 X_test_svd = svd.transform(X_test)
 
-# Scale the data obtained from SVD. Renaming variable to reuse without scaling.
+# Scale the data obtained from SVD. 
+# Renaming variable to reuse without scaling.
 from sklearn import preprocessing
 scale = preprocessing.StandardScaler()
 scale.fit(X_train_svd)
@@ -182,6 +193,9 @@ log_loss(y_test, y_pred )
 # Final Accuracy: 0.7672
 
 #******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #4 ***
 
 # XGBOOST METHOD
 
@@ -205,119 +219,21 @@ X_train_csc = csc_matrix(X_train)
 X_test_csc = csc_matrix(X_test)
 
 classifier.fit(X_train_csc, y_train)
-y_pred = classifier.predict_proba(X_test_csc)
 
+y_pred = classifier.predict_proba(X_test_csc)
 # Accuracy of the model
 log_loss(y_test, y_pred )
-
 # Final Accuracy: 0.4558
 
-#********************************************************************
-"""
-# GRID SEARCH
-
-from sklearn import model_selection, metrics, pipeline
-from sklearn.model_selection import GridSearchCV
-
-from sklearn.metrics import log_loss
-def logloss(y_test, predictions):
-    return log_loss(y_test, predictions)
-     
-
-	# create a scoring function
-scorer = metrics.make_scorer(logloss, 
-                                 greater_is_better=False, needs_proba=True)
-#using a pipeline consisting of SVD, scaling and then logistic regression
-
-from sklearn import decomposition ,preprocessing
-from sklearn.decomposition import TruncatedSVD
-from sklearn.linear_model import LogisticRegression
-# Initialize SVD
-svd = TruncatedSVD()
-# Initialize the standard scaler 
-scl = preprocessing.StandardScaler()
-# We will use logistic regression here..
-lr_model = LogisticRegression()
-
-# Create the pipeline 
-clf = pipeline.Pipeline([('svd', svd),
-                         ('scl', scl),
-                         ('lr', lr_model)])
-
-
-# grid of parameters:
-param_grid = {'svd__n_components' : [120, 180],
-              'lr__C': [0.1, 1.0, 10], 
-              'lr__penalty': ['l1', 'l2']}    
-
-# Initialize Grid Search Model
-model = GridSearchCV(estimator=clf, param_grid=param_grid, scoring=scorer,
-                     verbose=10, n_jobs=-1, iid=True, refit=True, cv=2)
-
-# Fit Grid Search Model
-model.fit(X_train, y_train)
-# we can use the full data here but im only using X_train
-print("Best score: %0.3f" % model.best_score_)
-print("Best parameters set:")
-best_parameters = model.best_estimator_.get_params()
-
-for param_name in sorted(param_grid.keys()):
-    print("\t%s: %r" % (param_name, best_parameters[param_name]))
-"""
-#******************************************************************************
-#******************************************************************************
-#******************************************************************************
-
-# WORD CLOUD
-# conda install -c conda-forge wordcloud
-
-import matplotlib.pyplot as plt
-from wordcloud import WordCloud, STOPWORDS
-
-stopwords = set(STOPWORDS)
-wordcloud = WordCloud(
-                          background_color='white',
-                          stopwords=stopwords,
-                          max_words=200,
-                          max_font_size=80,min_font_size=20, 
-                          random_state=42,
-                          width=1100, height=700, margin=0
-                         ).generate(str(dataset['total']))
-
-
-plt.imshow(wordcloud,interpolation='bilinear')
-plt.axis("off")
-plt.margins(x=0, y=0)
-plt.savefig('wc_1.png',dpi = 200)
-# plt.show() must be after plt.savefig() as clears the whole thing, 
-# so anything afterwards  will happen on a new empty figure.
-plt.show()
+y_pred = classifier.predict(X_test_csc)
+# Accuracy of the model
+acc_score(y_test, y_pred )
+# Final Accuracy: 0.9242
 
 #******************************************************************************
 #******************************************************************************
-#******************************************************************************
 
-# Word Vectors
-
-# load the GloVe vectors in a dictionary:
-# GloVe: Global Vectors for Word Representation
-embeddings_index = {}
-f = open('glove.840B.300d.txt')
-#Common Crawl (840B tokens, 2.2M vocab, cased, 300d vectors, 2.03 GB download)
-# link :::: https://nlp.stanford.edu/data/wordvecs/glove.840B.300d.zip\
-"""
-from tqdm import tqdm
-for line in tqdm(f):
-    values = line.split()
-    word = values[0]
-    coefs = np.asarray(values[1:], dtype='float32')
-    embeddings_index[word] = coefs
-f.close()
-
-print('Found %s word vectors.' % len(embeddings_index))
-"""
-
-#******************************************************************************
+# *** Applying Deep Learning Technique #1 ***
 
 # LSTM
 
@@ -375,6 +291,9 @@ print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
 
 
 #******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #5 ***
 
 from sklearn.ensemble import ExtraTreesClassifier
                             
@@ -391,7 +310,12 @@ score_ETC = Extr.score(X_test, y_test)
 print('Accuracy of Extratrees classifier on test set: %0.04f'%(score_ETC))
 
 # Accuracy of Extratrees classifier on test set: 0.8295
+
 #******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #6 ***
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 
@@ -411,6 +335,9 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 # Accuracy of Extratrees classifier on test set: 0.8224
 #******************************************************************************
 #******************************************************************************
+
+# *** Applying Machine Learning Technique #7 ***
+
 from sklearn.ensemble import RandomForestClassifier
 
 Rando= RandomForestClassifier(n_estimators=5)
@@ -429,6 +356,9 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 
 # Accuracy of Extratrees classifier on test set: 0.8137
 
+#******************************************************************************
+
+# HYPERPARAMETER OPTIMIZATION --> GRID SEARCH <--
 from sklearn.model_selection import GridSearchCV
 
 # parameters for GridSearchCV
@@ -475,6 +405,33 @@ if(text.sentiment.polarity==0):
 #******************************************************************************
 #******************************************************************************
     
+# WORD CLOUD
+# conda install -c conda-forge wordcloud
+
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud, STOPWORDS
+
+stopwords = set(STOPWORDS)
+wordcloud = WordCloud(
+                          background_color='white',
+                          stopwords=stopwords,
+                          max_words=200,
+                          max_font_size=80,min_font_size=20, 
+                          random_state=42,
+                          width=1100, height=700, margin=0
+                         ).generate(str(dataset['total']))
+
+
+plt.imshow(wordcloud,interpolation='bilinear')
+plt.axis("off")
+plt.margins(x=0, y=0)
+plt.savefig('wc_1.png',dpi = 200)
+# plt.show() must be after plt.savefig() as clears the whole thing, 
+# so anything afterwards  will happen on a new empty figure.
+plt.show()
+
+#******************************************************************************
+#******************************************************************************
     
 
 

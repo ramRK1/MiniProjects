@@ -13,7 +13,8 @@ print(dataset.shape)
 dataset['total']=dataset['author']+' '+dataset['title']+' '+dataset['text']
 
 #******************************************************************************
-# TRAINING SET
+#******************************************************************************
+
 # Cleaning the texts
 import re
 import nltk
@@ -37,6 +38,7 @@ for i in range(12999):
 #******************************************************************************
 #******************************************************************************
 
+# MODEL 1
 # Creating BAG OF WORDS MODEL :
     
 from sklearn.feature_extraction.text import CountVectorizer
@@ -45,6 +47,7 @@ X = cv.fit_transform(corpus).toarray()
 
 #*****************************************************************************
 
+# MODEL 2
 # Creating TF-IDF MODEL :
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -53,6 +56,8 @@ X =  tf.fit_transform(corpus)
 feature_names = tf.get_feature_names()
 
 #*****************************************************************************
+
+# Should be run after running any of Model 1 and Model 2
 
 Y = dataset.iloc[:,19].values
 # Encoding categorical data
@@ -66,6 +71,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,rando
 
 #*****************************************************************************
 #*****************************************************************************
+
+# Model Performance Evaluation Metrices
 
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import log_loss
@@ -94,6 +101,8 @@ def conf_matrix(y_test, y_pred ) :
 #*****************************************************************************
 #*****************************************************************************
 
+# *** Applying Machine Learning Technique #1 ***
+    
 # Fitting NAIVE BAYES to the Training set
 
 from sklearn.naive_bayes import MultinomialNB
@@ -111,6 +120,9 @@ conf_matrix(y_test, y_pred )
 # Final Accuracy: 0.8846 tfidf
 
 #*****************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #2 ***
 
 # Fitting LOGISTIC REGRESSION to the Training set
 from sklearn.linear_model import LogisticRegression
@@ -130,6 +142,24 @@ conf_matrix(y_test, y_pred )
 #******************************************************************************
 #******************************************************************************
 
+# *** Applying Machine Learning Technique #3 ***
+
+from sklearn.ensemble import RandomForestClassifier
+Rando= RandomForestClassifier(n_estimators=5)
+
+Rando.fit(X_train, y_train)
+
+print('Accuracy of RandomForest classifier on test set: %0.04f'
+     %(Rando.score(X_test, y_test)))
+
+# Accuracy of RandomForest classifier on test set: 0.9027 BOW
+# Accuracy of RandomForest classifier on test set: 0.8981 tfidf
+
+#******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #4 ***
+
 from sklearn.ensemble import ExtraTreesClassifier
                             
 Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
@@ -142,6 +172,9 @@ print('Accuracy of Extratrees classifier on test set: %0.04f'
 # Accuracy of Extratrees classifier on test set: 0.9115 tfidf
 
 #******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #5 ***
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
@@ -156,18 +189,6 @@ print('Accuracy of AdaBooost classifier on test set: %0.04f'
 # Accuracy of AdaBooost classifier on test set: 0.9019 tfidf
 
 #******************************************************************************
-
-from sklearn.ensemble import RandomForestClassifier
-Rando= RandomForestClassifier(n_estimators=5)
-
-Rando.fit(X_train, y_train)
-
-print('Accuracy of RandomForest classifier on test set: %0.04f'
-     %(Rando.score(X_test, y_test)))
-
-# Accuracy of RandomForest classifier on test set: 0.9027 BOW
-# Accuracy of RandomForest classifier on test set: 0.8981 tfidf
-
 #******************************************************************************
 
 # WORD CLOUD
@@ -196,3 +217,6 @@ plt.savefig('wc_3.png',dpi = 200)
 # plt.show() must be after plt.savefig() as clears the whole thing, 
 # so anything afterwards  will happen on a new empty figure.
 plt.show()
+
+#******************************************************************************
+#******************************************************************************
