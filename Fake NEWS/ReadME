@@ -9,8 +9,13 @@
 	spyder saved corpus :: corpus_2.spydata   
 	
 ############################################################
- 1) nlp_3.py
+ 3) nlp_3.py
  		dataset link :: https://www.kaggle.com/mrisdal/fake-news#fake.csv
  		spyder saved corpus :: corpus_3.spydata    
+		
+############################################################
+ 4) nlp_4.py
+ 		dataset link :: https://www.uvic.ca/engineering/ece/isot/datasets/index.php
+ 		spyder saved corpus :: corpus_4.spydata    
 
 * Corpus shared explicitly
