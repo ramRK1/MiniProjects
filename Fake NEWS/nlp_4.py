@@ -51,8 +51,8 @@ for i in range(44898):
 # Creating BAG OF WORDS MODEL :
     
 from sklearn.feature_extraction.text import CountVectorizer
-cv = CountVectorizer(max_features = 40000)
-X = cv.fit_transform(corpus).toarray()
+cv = CountVectorizer(max_features = 88000)
+X = cv.fit_transform(corpus)
 
 #*****************************************************************************
 
@@ -72,7 +72,8 @@ Y = dataset.iloc[:,4].values
 
 # Splitting the dataset into the Training set and Test set
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,random_state = 0)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.20,
+                                                    random_state = 0, stratify=Y)
 
 #*****************************************************************************
 #*****************************************************************************
@@ -119,27 +120,69 @@ y_pred = classifier_1.predict(X_test)
 # Accuracy of the model
 acc_score(y_test, y_pred )
 
-
-#*****************************************************************************
-#*****************************************************************************
-
-# *** Applying Machine Learning Technique #2 ***
-
-# Fitting LOGISTIC REGRESSION to the Training set
-from sklearn.linear_model import LogisticRegression
-classifier_2 = LogisticRegression(random_state = 0)
-classifier_2.fit(X_train, y_train)
-
-# Predicting the Test set results
-y_pred = classifier_2.predict(X_test)
-
-# Accuracy of the model
-acc_score(y_test, y_pred )
-
+# Accuracy: 95.38%
 
 #******************************************************************************
 #******************************************************************************
 
+# *** Applying Machine Learning Technique #3 ***
+
+from sklearn.ensemble import RandomForestClassifier
+Rando= RandomForestClassifier(n_estimators=5)
+
+Rando.fit(X_train, y_train)
+
+print('Accuracy of RandomForest classifier on test set: %0.04f'
+     %(Rando.score(X_test, y_test)))
+
+# Accuracy of RandomForest classifier on test set: 0.9027 BOW
+# Accuracy of RandomForest classifier on test set: 0.8981 tfidf
+
+#******************************************************************************
+#******************************************************************************
+
+# *** Applying Machine Learning Technique #4 ***
+
+from sklearn.ensemble import ExtraTreesClassifier
+                            
+Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
+Extr.fit(X_train, y_train)
+
+print('Accuracy of Extratrees classifier on test set: %0.04f'
+     %(Extr.score(X_test, y_test)))
+
+# Accuracy of Extratrees classifier on test set: 0.9004 BOW
+# Accuracy of Extratrees classifier on test set: 0.9115 tfidf
+
+#******************************************************************************
+#******************************************************************************
+
+# WORD CLOUD
+# conda install -c conda-forge wordcloud
+
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+wordcloud = WordCloud(
+                          background_color='white',
+                          
+                          max_words=200,
+                          max_font_size=80,min_font_size=10, 
+                          random_state=42,
+                          width=1100, height=700, margin=0
+                         ).generate(str(corpus))
+
+
+plt.imshow(wordcloud,interpolation='bilinear')
+plt.axis("off")
+plt.margins(x=0, y=0)
+plt.savefig('wc_4.png',dpi = 200)
+# plt.show() must be after plt.savefig() as clears the whole thing, 
+# so anything afterwards  will happen on a new empty figure.
+plt.show()
+
+#******************************************************************************
+#******************************************************************************
 
 
 

@@ -1,0 +1,14 @@
+Categorical :
+	Item_Fat_Content : NA's: 195 
+	Outlet_Size : NA's:4016 
+	Outlet_Location_Type 
+	Outlet_Type
+	Item_Type
+
+Continuous :
+	Outlet_Establishment_Year
+	Item_Weight :NA's   :2439
+	Item_MRP
+	Item_Visiibility
+
+Pridict : Item_Outlet_Sales --Continuous

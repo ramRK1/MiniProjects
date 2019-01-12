@@ -246,19 +246,15 @@ print("Accuracy: %.4f%%" % (acc * 100.0))
 # conda install -c conda-forge wordcloud
 
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud, STOPWORDS
-
-stopwords = set(STOPWORDS)
-new_words = ['NaN']
-new_stopwords=stopwords.union(new_words)
+from wordcloud import WordCloud
 wordcloud = WordCloud(
                           background_color='white',
-                          stopwords=new_stopwords,
+                          
                           max_words=200,
                           max_font_size=80,min_font_size=25, 
                           random_state=42,
                           width=1100, height=700, margin=0
-                         ).generate(str(dataset['total']))
+                         ).generate(str(corpus))
 
 
 plt.imshow(wordcloud,interpolation='bilinear')
