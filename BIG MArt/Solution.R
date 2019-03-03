@@ -10,7 +10,14 @@ library(caret)
 Train <- read_csv("Train.csv")
 Test <- read_csv("Test.csv")
 
-dataset = dplyr::bind_rows(Train,Test)
+Test$Item_Outlet_Sales <- NA
+dataset = rbind(Train,Test)
+  
+summary(dataset)
+summary(is.na(dataset)) #TRUE indicates missing
+# dim(Dataset) [dimensions of dataset]
+# fix(Dataset) [editing the dataset]
+
 ####################################################################
 
 dataset$Item_Fat_Content <- factor( dataset$Item_Fat_Content)
@@ -21,14 +28,43 @@ dataset$Item_Type <- factor( dataset$Item_Type)
 
 ####################################################################
 
-# Data Exploration
-summary(dataset)
-# dim(Dataset) [dimensions of dataset]
-# fix(Dataset) [editing the dataset]
+# Data Visulization
 
-sum( is.na( dataset )) #[count no. of missing value
+
 
 # *** RAW-DATA  ANALYSIS ***
+
+# Spread Analysis Continuous Variables
+p41 <- ggplot(dataset, aes(Item_Weight)) +
+  geom_area(stat = "bin" , fill = "springgreen4", na.rm = TRUE)
+p42 <- ggplot(dataset, aes(Item_MRP)) +
+  geom_area(stat = "bin" , fill = "purple4", na.rm = TRUE)
+p43 <- ggplot(dataset, aes(Item_Visibility)) +
+  geom_area(stat = "bin" , fill = "darkorange4", na.rm = TRUE)
+p44 <- ggplot(dataset, aes(Outlet_Establishment_Year)) +
+  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE)
+
+grid.arrange(
+  p41,p42,p43,p44, nrow = 2,
+  top = "Spread Check")
+
+#********************************************************************
+# Spread Analysis Categorical Variables
+p51 <- ggplot(dataset, aes(Outlet_Type)) +
+  geom_bar(fill = "springgreen4", na.rm = TRUE)
+p52 <- ggplot(dataset, aes(Outlet_Location_Type )) +
+  geom_bar(fill = "purple4", na.rm = TRUE)
+p53 <- ggplot(dataset, aes(Outlet_Size)) +
+  geom_bar(fill = "darkorange4", na.rm = TRUE)
+p54 <- ggplot(dataset, aes(Item_Fat_Content)) +
+  geom_bar(fill = "deepskyblue4", na.rm = TRUE)
+
+
+grid.arrange(
+  p51,p52,p53,p54, nrow = 2,
+  top = "Spread Check")
+
+#********************************************************************
 # PRICE EFFECTS
 p11 <- ggplot(dataset, aes(Item_MRP, fill = Outlet_Type)) +
   geom_area(stat = "bin" , na.rm = TRUE)
@@ -58,38 +94,6 @@ p34 <- ggplot(dataset, aes(Item_Weight, fill = Item_Fat_Content)) +
 grid.arrange(
   p31,p32,p33,p34, nrow = 2,
   top = "Weight Effects")
-
-#********************************************************************
-# Spread Analysis Continuous Variables
-p41 <- ggplot(dataset, aes(Item_Weight)) +
-  geom_area(stat = "bin" , fill = "springgreen4", na.rm = TRUE)
-p42 <- ggplot(dataset, aes(Item_MRP)) +
-  geom_area(stat = "bin" , fill = "purple4", na.rm = TRUE)
-p43 <- ggplot(dataset, aes(Item_Visibility)) +
-  geom_area(stat = "bin" , fill = "darkorange4", na.rm = TRUE)
-p44 <- ggplot(dataset, aes(Outlet_Establishment_Year)) +
-  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE)
-
-
-grid.arrange(
-  p41,p42,p43,p44, nrow = 2,
-  top = "Spread Check")
-
-#********************************************************************
-# Spread Analysis Categorical Variables
-p51 <- ggplot(dataset, aes(Outlet_Type)) +
-  geom_bar(fill = "springgreen4", na.rm = TRUE)
-p52 <- ggplot(dataset, aes(Outlet_Location_Type )) +
-  geom_bar(fill = "purple4", na.rm = TRUE)
-p53 <- ggplot(dataset, aes(Outlet_Size)) +
-  geom_bar(fill = "darkorange4", na.rm = TRUE)
-p54 <- ggplot(dataset, aes(Item_Fat_Content)) +
-  geom_bar(fill = "deepskyblue4", na.rm = TRUE)
-
-
-grid.arrange(
-  p51,p52,p53,p54, nrow = 2,
-  top = "Spread Check")
 
 #********************************************************************
 
