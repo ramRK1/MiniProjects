@@ -348,6 +348,7 @@ X = Accident.drop(Accident.columns[[1]],axis = 1)
 from sklearn.model_selection import train_test_split
 x_train, x_cv, y_train, y_cv = train_test_split(X,Y, test_size =0.3)
 
+# *******************************************************************
 
 # Random Forest
 from sklearn.ensemble import RandomForestClassifier
@@ -366,14 +367,46 @@ print(classification_report(y_cv, y_pred, target_names=target_names))
 from sklearn.metrics import accuracy_score
 accuracy_score(y_cv, y_pred)
 
+# *******************************************************************
 
+# ExtraTree Classifier
+from sklearn.ensemble import ExtraTreesClassifier
+                            
+Extr = ExtraTreesClassifier(n_estimators=5,n_jobs=4)
+Extr.fit(x_train, y_train)
 
+# Predicting the Test set results
+y_pred = Extr.predict(x_cv)
 
+# Making the Classification report
+from sklearn.metrics import classification_report
+target_names = ['class 1', 'class 2', 'class 3']
+print(classification_report(y_cv, y_pred, target_names=target_names))
 
+# Making the Accuracy Score
+from sklearn.metrics import accuracy_score
+accuracy_score(y_cv, y_pred)
 
+# ******************************************************************
 
+# AdaBoost 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
 
+Adab= AdaBoostClassifier(DecisionTreeClassifier(max_depth=3),n_estimators=5)
+Adab.fit(x_train, y_train)
 
+# Predicting the Test set results
+y_pred = Adab.predict(x_cv)
+
+# Making the Classification report
+from sklearn.metrics import classification_report
+target_names = ['class 1', 'class 2', 'class 3']
+print(classification_report(y_cv, y_pred, target_names=target_names))
+
+# Making the Accuracy Score
+from sklearn.metrics import accuracy_score
+accuracy_score(y_cv, y_pred)
 
 
 
