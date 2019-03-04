@@ -120,6 +120,7 @@ plt.show()
 
 # Categorical Independent Variable vs Target Variable
 
+#Day_of_Week
 Day_of_Week = pd.crosstab(Accident['Day_of_Week'],Accident['Accident_Severity'])
 # Percentage wise
 for i in range(7):
@@ -127,10 +128,161 @@ for i in range(7):
 
 Day_of_Week.plot(kind="bar", stacked=True, figsize=(4,4))
 
+#Police_Force
+Police_Force = pd.crosstab(Accident['Police_Force'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(51):
+    Police_Force.iloc[i] = Police_Force.iloc[i,:] / Police_Force.iloc[i].sum()
+Police_Force.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Number_of_Vehicles
+Number_of_Vehicles = pd.crosstab(Accident['Number_of_Vehicles'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(28):
+    Number_of_Vehicles.iloc[i] = Number_of_Vehicles.iloc[i,:] / Number_of_Vehicles.iloc[i].sum()
+
+Number_of_Vehicles.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Number_of_Casualties
+Number_of_Casualties = pd.crosstab(Accident['Number_of_Casualties'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(28):
+    Number_of_Casualties.iloc[i] = Number_of_Casualties.iloc[i,:] / Number_of_Casualties.iloc[i].sum()
+
+Number_of_Casualties.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Pedestrian_Crossing-Physical_Facilities
+Pedestrian_Crossing_Physical_Facilities = pd.crosstab(Accident['Pedestrian_Crossing-Physical_Facilities'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(7):
+    Pedestrian_Crossing_Physical_Facilities.iloc[i] = Pedestrian_Crossing_Physical_Facilities.iloc[i,:] / Pedestrian_Crossing_Physical_Facilities.iloc[i].sum()
+
+Pedestrian_Crossing_Physical_Facilities.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Pedestrian_Crossing-Human_Control
+Pedestrian_Crossing_Human_Control = pd.crosstab(Accident['Pedestrian_Crossing-Human_Control'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(4):
+    Pedestrian_Crossing_Human_Control.iloc[i] = Pedestrian_Crossing_Human_Control.iloc[i,:] / Pedestrian_Crossing_Human_Control.iloc[i].sum()
+
+Pedestrian_Crossing_Human_Control.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Light_Conditions
+Light_Conditions = pd.crosstab(Accident['Light_Conditions'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(5):
+    Light_Conditions.iloc[i] = Light_Conditions.iloc[i,:] / Light_Conditions.iloc[i].sum()
+
+Light_Conditions.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Weather_Conditions
+Weather_Conditions = pd.crosstab(Accident['Weather_Conditions'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(10):
+    Weather_Conditions.iloc[i] = Weather_Conditions.iloc[i,:] / Weather_Conditions.iloc[i].sum()
+
+Weather_Conditions.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Road_Surface_Conditions
+Road_Surface_Conditions = pd.crosstab(Accident['Road_Surface_Conditions'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(6):
+    Road_Surface_Conditions.iloc[i] = Road_Surface_Conditions.iloc[i,:] / Road_Surface_Conditions.iloc[i].sum()
+
+Road_Surface_Conditions.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Special_Conditions_at_Site
+Special_Conditions_at_Site = pd.crosstab(Accident['Special_Conditions_at_Site'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(9):
+    Special_Conditions_at_Site.iloc[i] = Special_Conditions_at_Site.iloc[i,:] / Special_Conditions_at_Site.iloc[i].sum()
+
+Special_Conditions_at_Site.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Carriageway_Hazards
+Carriageway_Hazards = pd.crosstab(Accident['Carriageway_Hazards'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(7):
+    Carriageway_Hazards.iloc[i] = Carriageway_Hazards.iloc[i,:] / Carriageway_Hazards.iloc[i].sum()
+
+Carriageway_Hazards.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Urban_or_Rural_Area
+Urban_or_Rural_Area = pd.crosstab(Accident['Urban_or_Rural_Area'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(3):
+    Urban_or_Rural_Area.iloc[i] = Urban_or_Rural_Area.iloc[i,:] / Urban_or_Rural_Area.iloc[i].sum()
+
+Urban_or_Rural_Area.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#1st Road Class
+Road_Class = pd.crosstab(Accident['1st_Road_Class'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(3):
+    Road_Class.iloc[i] = Road_Class.iloc[i,:] / Road_Class.iloc[i].sum()
+
+Road_Class.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#1st Road Number
+Road_Number = pd.crosstab(Accident['1st_Road_Number'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(7062):
+    Road_Number.iloc[i] = Road_Number.iloc[i,:] / Road_Number.iloc[i].sum()
+
+Road_Number.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Road Type
+Road_Type = pd.crosstab(Accident['Road_Type'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(6):
+    Road_Type.iloc[i] = Road_Type.iloc[i,:] / Road_Type.iloc[i].sum()
+
+Road_Type.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Speed limit
+Speed_limit = pd.crosstab(Accident['Speed_limit'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(9):
+    Speed_limit.iloc[i] = Speed_limit.iloc[i,:] / Speed_limit.iloc[i].sum()
+
+Speed_limit.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Junction Detail
+Junction_Detail = pd.crosstab(Accident['Junction_Detail'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(10):
+    Junction_Detail.iloc[i] = Junction_Detail.iloc[i,:] / Junction_Detail.iloc[i].sum()
+
+Junction_Detail.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Junction_Control
+Junction_Control = pd.crosstab(Accident['Junction_Control'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(6):
+    Junction_Control.iloc[i] = Junction_Control.iloc[i,:] / Junction_Control.iloc[i].sum()
+
+Junction_Control.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#2nd_Road_Class
+Road_Class = pd.crosstab(Accident['2nd_Road_Class'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(7):
+    Road_Class.iloc[i] = Road_Class.iloc[i,:] / Road_Class.iloc[i].sum()
+
+Road_Class.plot(kind="bar", stacked=True, figsize=(4,4))
+
+#Did_Police_Officer_Attend_Scene_of_Accident
+Did_Police_Officer_Attend_Scene_of_Accident = pd.crosstab(Accident['Did_Police_Officer_Attend_Scene_of_Accident'],Accident['Accident_Severity'])
+# Percentage wise
+for i in range(4):
+    Did_Police_Officer_Attend_Scene_of_Accident.iloc[i] = Did_Police_Officer_Attend_Scene_of_Accident.iloc[i,:] / Did_Police_Officer_Attend_Scene_of_Accident.iloc[i].sum()
+
+Did_Police_Officer_Attend_Scene_of_Accident.plot(kind="bar", stacked=True, figsize=(4,4))
 
 # *******************************************************************
 # *******************************************************************
- # Correlation Matrix
+
+# Correlation Matrix
 matrix = Accident.corr() 
 f, ax = plt.subplots(figsize=(9, 6)) 
 sns.heatmap(matrix, vmax=.8, square=True, cmap="BuPu");
@@ -146,14 +298,36 @@ Accident.isnull().sum()
 # Dropping rows containing any missing values
 Accident = Accident.dropna()
 
+# *******************************************************************
 # Since in this dataset missing values represent -1 values
+#Junction_Control
 pd.value_counts(Accident['Junction_Control'].values) # 641392
 # Dropping
 Accident = Accident[ Accident.Junction_Control != -1 ]
 
+
+#Weather_Conditions
 pd.value_counts(Accident['Weather_Conditions'].values)
 # Imputing
 Accident.Weather_Conditions[Accident.Weather_Conditions == -1] = 1
+
+
+# Road_Surface_conditions
+pd.value_counts(Accident['Road_Surface_Conditions'].values)
+# Dropping
+Accident = Accident[ Accident.Road_Surface_Conditions != -1 ]
+
+
+#Special_Conditions_at_Site
+pd.value_counts(Accident['Special_Conditions_at_Site'].values)
+# Dropping
+Accident = Accident[ Accident.Special_Conditions_at_Site != -1 ]
+
+
+#Carriageway_Hazards
+pd.value_counts(Accident['Carriageway_Hazards'].values)
+# Dropping
+Accident = Accident[ Accident.Carriageway_Hazards != -1 ]
 
 # *******************************************************************
 # *******************************************************************
@@ -161,28 +335,36 @@ Accident.Weather_Conditions[Accident.Weather_Conditions == -1] = 1
 # Model Building
 
 # Dropping Unecessary Columns
-Accident = Accident.drop([],axis = 1)
+Accident.drop(Accident.columns[[0,1,2,3,4,9,11,13,31]], axis=1, inplace=True)
 
 # Seperating Dependent & Independent Variable
 Y = Accident.Accident_Severity
-X = Accident.drop('Accident_Severity',1)
+X = Accident.drop(Accident.columns[[1]],axis = 1)
 
 # Dummy Variables
-X=pd.get_dummies(X) 
+#X=pd.get_dummies(X) 
  
 # Splitting Dataset
 from sklearn.model_selection import train_test_split
-x_train, x_cv, y_train, y_cv = train_test_split(X,y, test_size =0.3)
+x_train, x_cv, y_train, y_cv = train_test_split(X,Y, test_size =0.3)
 
 
+# Random Forest
+from sklearn.ensemble import RandomForestClassifier
+classifier = RandomForestClassifier(n_estimators = 10, criterion = 'entropy', random_state = 0)
+classifier.fit(x_train, y_train)
 
+# Predicting the Test set results
+y_pred = classifier.predict(x_cv)
 
+# Making the Classification report
+from sklearn.metrics import classification_report
+target_names = ['class 1', 'class 2', 'class 3']
+print(classification_report(y_cv, y_pred, target_names=target_names))
 
-
-
-
-
-
+# Making the Accuracy Score
+from sklearn.metrics import accuracy_score
+accuracy_score(y_cv, y_pred)
 
 
 
