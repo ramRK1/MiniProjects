@@ -1,7 +1,6 @@
 # Import Pakages ----------------------------------------------------------
 library(tidyverse)
 library(readr)
-library(ggcorrplot)
 library(gridExtra)
 library(randomForest)
 library(caret)
@@ -17,17 +16,69 @@ Test <- read_csv("Test.csv")
 str(Train)
 summary(Train)
 
+# Data Manipulation ---------------------------------------------------
+
+# 1)
+# Convert factor in character [Item_Fat_Content]
+Train$Item_Fat_Content <- as_factor( Train$Item_Fat_Content)
+# check levels
+levels(Train$Item_Fat_Content) 
+
+# replace LF,low fat with Low Fat
+levels( Train$Item_Fat_Content)[1:2] <- "Low Fat"
+
+# replace ref with Regular
+levels( Train$Item_Fat_Content )[2] <- "Regular"
+
+# 2)
+# Since no item product can have zero visibility
+## Replace 0 in Item_Visibility by Mean
+# Count no of zeros
+Train %>% filter( Item_Visibility == 0.0 ) %>% count(n())
+# Replace with mean
+Train = Train %>% mutate(Item_Visibility = replace(Item_Visibility, 
+                                                   which( Item_Visibility == 0.0),
+                                                   mean(Train$Item_Visibility)))
+# 3)
+Train$Item_Type <- factor(Train$Item_Type)
+levels(Train$Item_Type)
+
+# 4)
+# Get unique years
+sort(unique(Train$Outlet_Establishment_Year))
+## Replace year with corresponding number 
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1985]<- 2018-1985
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1987]<- 2018-1987
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1997]<- 2018-1997
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1998]<- 2018-1998
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1999]<- 2018-1999
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2002]<- 2018-2002
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2004]<- 2018-2004
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2007]<- 2018-2007
+Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2009]<- 2018-2009
+
+# 5)
+## Convert Outlet_Size into numeric
+Train$Outlet_Size <- factor( Train$Outlet_Size)
+levels(Train$Outlet_Size)
+
+Train$Outlet_Location_Type <- factor( Train$Outlet_Location_Type)
+levels(Train$Outlet_Location_Type)
+
+Train$Outlet_Type <- factor( Train$Outlet_Type)
+levels(Train$Outlet_Type)
+
 # Univariate Analysis -----------------------------------------------------
 
 # Spread Analysis Continuous Variables
 p41 <- ggplot(Train, aes(Item_Weight)) +
-  geom_area(stat = "bin" , fill = "springgreen4", na.rm = TRUE)
+  geom_area(stat = "bin" , fill = "springgreen4", na.rm = TRUE,binwidth = 2)
 p42 <- ggplot(Train, aes(Item_MRP)) +
-  geom_area(stat = "bin" , fill = "purple4", na.rm = TRUE)
+  geom_area(stat = "bin" , fill = "purple4", na.rm = TRUE,binwidth = 5)
 p43 <- ggplot(Train, aes(Item_Visibility)) +
   geom_area(stat = "bin" , fill = "darkorange4", na.rm = TRUE)
 p44 <- ggplot(Train, aes(Outlet_Establishment_Year)) +
-  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE)
+  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE,binwidth = 2)
 
 grid.arrange(
   p41,p42,p43,p44, nrow = 2,
@@ -49,6 +100,17 @@ grid.arrange(
   p51,p52,p53,p54, nrow = 2,
   top = "Spread Check")
 
+#********************************************************************
+
+# Spread Analysis Dependent Variables
+ggplot(Train, aes(Item_Outlet_Sales)) +
+  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE)
+
+# Skewness and Kurtosis  
+library(moments)
+skewness(Train$Item_Outlet_Sales)
+kurtosis(Train$Item_Outlet_Sales)
+
 # BiVariate Analysis ------------------------------------------------------
 
 # Continuous Vs Target Variable
@@ -69,328 +131,75 @@ grid.arrange(
   top = "Continuous Vs Target Variable")
 
 #********************************************************************
-# PRICE EFFECTS
-p11 <- ggplot(Train, aes(Item_MRP, fill = Outlet_Type)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p12 <- ggplot(Train, aes(Item_MRP, fill = Outlet_Location_Type)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p13 <- ggplot(Train, aes(Item_MRP, fill = Outlet_Size)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p14 <- ggplot(Train, aes(Item_MRP, fill = Item_Fat_Content)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
 
-
-grid.arrange(
-  p11,p12,p13,p14, nrow = 2,
-  top = "Price Effects")
-#********************************************************************
-# Weight EFFECTS
-p31 <- ggplot(Train, aes(Item_Weight, fill = Outlet_Type)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p32 <- ggplot(Train, aes(Item_Weight, fill = Outlet_Location_Type)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p33 <- ggplot(Train, aes(Item_Weight, fill = Outlet_Size)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-p34 <- ggplot(Train, aes(Item_Weight, fill = Item_Fat_Content)) +
-  geom_area(stat = "bin" , na.rm = TRUE)
-
+# Discrete Vs Target Variable
+p21 <- ggplot(Train,aes(Train$Item_Fat_Content, Train$Item_Outlet_Sales, fill = Train$Item_Fat_Content)) + 
+  geom_boxplot() + coord_flip()
+p23 <- ggplot(Train,aes(Train$Outlet_Size, Train$Item_Outlet_Sales, fill = Train$Outlet_Size)) + 
+  geom_boxplot() + coord_flip()
+p24 <- ggplot(Train,aes(Train$Outlet_Location_Type, Train$Item_Outlet_Sales, fill = Train$Outlet_Location_Type)) + 
+  geom_boxplot() + coord_flip()
+p25 <- ggplot(Train,aes(Train$Outlet_Type, Train$Item_Outlet_Sales, fill = Train$Outlet_Type)) + 
+  geom_boxplot() + coord_flip()
 
 grid.arrange(
-  p31,p32,p33,p34, nrow = 2,
-  top = "Weight Effects")
+  p21,p25,p23,p24, nrow = 2,
+  top = "Discrete Vs Target Variable")
 
-#********************************************************************
+p22 <- ggplot(Train,aes(Train$Item_Type, Train$Item_Outlet_Sales, fill = Train$Item_Type)) + 
+  geom_boxplot() + coord_flip();p22
+
+# Correlation Matrix ------------------------------------------------------
 
 Train2 = na.omit(Train)
-d <- as.data.frame(cor(Train2[ ,-c(1,3,5,7,9,10,11)],method = "spearman"))
-ggcorrplot(cor(Train2[ ,-c(1,3,5,7,9,10,11)],method = "spearman"),method = 'circle',hc.order = T,
-           type ='lower',colors = c('red4','azure','yellow'),
-           ggtheme = ggplot2::theme_grey())
+d <- round(cor(Train2[ ,-c(1,3,5,7,9,10,11)]),2)
 
-# Visual Representation of missing values
-library(VIM)
-mice_plot <- aggr( Train[,-c(12)],
-                   numbers = TRUE, sortVars = TRUE,
-                   labels = names(Train[,-c(1,7,12)]), cex.axis = .7,
-                   gap = 1, ylab = c("Missing Data","Pattern"))
+#Melt data to bring the correlation values in two axis
+library(reshape2)
+melted_d <- melt(d)
 
-data.frame(sapply(Train, function(x) sum(is.na(x))))
+# Creating the Correlation matrix Heatmap
+c1 <- ggplot(data = melted_d, aes(x=Var1, y=Var2, fill=value,label= value)) + 
+          geom_tile() +
+          # Adding color scale
+          scale_fill_gradient2(low = "red4",high = "green4",mid ="yellow") +
+          # Adding correlation value
+          geom_text();c1
 
-## Replace Missing vaues in Item_Weight in mean
+# Missing Value Treat ------------------------------------------------------
 
+# Getting missing value percentage
+missing_val <- as.data.frame(sapply(Train, function(x) sum(is.na(x))/nrow(Train) ))
+# Renaming Column
+colnames(missing_val) <- c("percent")
+missing_val$col <-as.factor(row.names(missing_val))
+missing_val$percent <- subset( missing_val, percent != 0.0)
+
+ggplot(missing_val, aes(y = percent,x = col, fill = "col")) + 
+  geom_bar(stat = "identity")
+
+# Since there are more than 28% missing values in Outlet Size, therefore Dropping it.
+Train <- Train[,-9]
+
+# Replace Missing vaues in Item_Weight in mean
 Train = Train %>% mutate_at(vars(Item_Weight),~ifelse(is.na(.x), mean(.x, na.rm = TRUE), .x))
 sum(is.na(Train$Item_Weight))
 
-## Replace missing values in Outle_Size by mode
-mode_cal <- function(x) {
-  ux <- unique(x)
-  ux[which.max(tabulate(match(x, ux)))]
-}
-val = mode_cal(Train$Outlet_Size)
-
-Train$Outlet_Size = Train$Outlet_Size %>% replace_na(val)
-sum(is.na(Train$Outlet_Size))
-
-# ***********************************************************
-# Data Transformation
-
-# Convert factor in character [Item_Fat_Content]
-Train$Item_Fat_Content <- factor( Train$Item_Fat_Content)
-levels(Train$Item_Fat_Content) # check levels
-
-#Train$Item_Fat_Content <- as.character(Train$Item_Fat_Content)
-library(data.table)
-# replace LF,low fat,reg with Low Fat & Regular
-data_dt <- data.table(Train) %>% .[ Item_Fat_Content %in% c("LF","low fat"),
-                                    Item_Fat_Content := "Low Fat" ]
-# Base Method 
-# Train$Item_Fat_Content[ Train$Item_Fat_Content == "LF" & Train$Item_Fat_Content == "low fat"] <- "Low Fat"
-
-data_dt <- data_dt %>% .[ Item_Fat_Content == "reg",Item_Fat_Content := "Regular" ]
-# Convert into dataframe
-Train = data.frame(data_dt) 
-# Into factor
-Train$Item_Fat_Content <- factor( Train$Item_Fat_Content)
-levels(Train$Item_Fat_Content)
-
-
-## REplace 0 in Item_Visibility by Mean
-# Count no of zeros
-i0 = Train %>% filter( Item_Visibility == 0.0 ) %>% count(n());i0
-# Replace with mean
-Train = Train %>% mutate(Item_Visibility = replace(Item_Visibility, 
-                                             which( Item_Visibility == 0.0),
-                                             mean(Train$Item_Visibility)))
-
-# *************************************************************************
-
-## Replace year with corresponding number 
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1985]<- 2013-1985
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1987]<- 2013-1987
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1997]<- 2013-1997
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1998]<- 2013-1998
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1999]<- 2013-1999
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2002]<- 2013-2002
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2004]<- 2013-2004
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2007]<- 2013-2007
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2009]<- 2013-2009
-
-# *************************************************************************
-## Convert Outlet_Size into numeric
-Train$Outlet_Size <- factor( Train$Outlet_Size)
-Train$Outlet_Size = as.numeric(Train$Outlet_Size)
-
-# Create Volume sold Column
-
-#Train <- Train %>% mutate(Item_Volume = round(Train$Item_Weight/Train$Item_MRP))
-
-# *************************************************************************
-str(Train)
-Train$Item_Fat_Content <- factor( Train$Item_Fat_Content)
-Train$Outlet_Location_Type <- factor( Train$Outlet_Location_Type)
-Train$Outlet_Type <- factor( Train$Outlet_Type)
-Train$Item_Type <- factor( Train$Item_Type)
-Train$Outlet_Identifier <- factor( Train$Outlet_Identifier )
-## Create One Hot Data Train
+# Dummy Variables ------------------------------------------------------
 
 # Continuous Variables
-set_1 <- Train[, c(1,2,4,6,8,9,12) ]
+set_1 <- Train[, c(1,2,4,6,7,8,11) ]
+# standardizing the Variables
+set_11 <- normalizeFeatures(Train_trans[,c(2,3,4,6)],method = "standardize")
 
 # Categorical Variables
-set_2 <- Train[, c(3,5,7,10,11) ]
+set_2 <- Train[, c(3,5,9,10) ]
+# Creating Dummy Variable using MLR Pakage 
+set_22 <- createDummyFeatures(set_2)
 
-# Converting 
-#library(caret)
-# 1)
-dummies_IFS <- predict(dummyVars(~ Item_Fat_Content, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_IFS) <- c("IFS.Low_Fat","IFS.Regular")
-head(dummies_IFS, n = 3)
+# Combining Sets
+Train_trans <- bind_cols( set_11, set_22)
 
-# # 2)
-# dummies_OS <- predict(dummyVars(~ Outlet_Size, data = set_2), 
-#                       newdata = set_2)
-# colnames(dummies_OS) <- c("OS.High", "OS.Medium", "OS.Small")
-# head(dummies_OS, n = 3)
-
-# 3)
-dummies_OLT <- predict(dummyVars(~ Outlet_Location_Type, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_OLT) <- c("OLT.Tier 1", "OLT.Tier 2", "OLT.Tier 3")
-head(dummies_OLT, n = 3)
-
-# 4)
-dummies_OT <- predict(dummyVars(~ Outlet_Type, data = set_2), 
-                      newdata = set_2)
-colnames(dummies_OT) <- c("OT.Supermarket Type1","OT.Supermarket Type2", "OT.Supermarket Type3","OT.Grocery Store")
-head(dummies_OT, n = 3)
-
-# 5)
-dummies_IT <- predict(dummyVars(~ Item_Type, data = set_2), 
-                      newdata = set_2)
-colnames(dummies_IT) <- c("Baking Goods",         "Breads"        ,        "Breakfast" ,            "Canned"      ,         
-                           "Dairy"       ,          "Frozen Foods" ,         "Fruits and Vegetables" ,"Hard Drinks",          
-                           "Health and Hygiene" ,   "Household"     ,        "Meat"        ,          "Others"      ,         
-                           "Seafood"      ,         "Snack Foods"    ,       "Soft Drinks"  ,         "Starchy Foods"   )
-head(dummies_IT, n = 3)
-
-# 6)
-dummies_OUT <- predict(dummyVars(~ Outlet_Identifier, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_OUT) <- c("OUT010", "OUT013","OUT017","OUT018","OUT019",
-                           "OUT027","OUT035" ,
-                           "OUT045","OUT046", "OUT049")
-head(dummies_OUT, n = 3)
-
-set_3 <- bind_cols(data.frame(dummies_IFS),data.frame(dummies_OLT),
-                   data.frame(dummies_OT),
-                   data.frame(dummies_IT),data.frame(dummies_OUT))
-
-Train_trans <- bind_cols( set_1, set_3)
-
-###############################***TEST SET ***#################################
-
-# Visual Representation of missing values
-library(VIM)
-mice_plot <- aggr( Test,
-                   numbers = TRUE, sortVars = TRUE,
-                   labels = names(Test[,-c(1,7)]), cex.axis = .7,
-                   gap = 1, ylab = c("Missing Data","Pattern"))
-
-
-data.frame(sapply(Test, function(x) sum(is.na(x))))
-
-## Replace Missing vaues in Item_Weight in mean
-
-Test = Test %>% mutate_at(vars(Item_Weight),~ifelse(is.na(.x), mean(.x, na.rm = TRUE), .x))
-sum(is.na(Test$Item_Weight))
-
-## Replace missing values in Outle_Size by mode
-mode_cal <- function(x) {
-  ux <- unique(x)
-  ux[which.max(tabulate(match(x, ux)))]
-}
-val = mode_cal(Test$Outlet_Size)
-
-Test$Outlet_Size = Test$Outlet_Size %>% replace_na(val)
-sum(is.na(Test$Outlet_Size))
-
-# ***********************************************************
-# Data Transformation
-
-# Convert factor in character [Item_Fat_Content]
-Test$Item_Fat_Content <- factor( Test$Item_Fat_Content)
-levels(Test$Item_Fat_Content) # check levels
-
-#Test$Item_Fat_Content <- as.character(Test$Item_Fat_Content)
-library(data.table)
-# replace LF,low fat,reg with Low Fat & Regular
-data_dt <- data.table(Test) %>% .[ Item_Fat_Content %in% c("LF","low fat"),
-                                    Item_Fat_Content := "Low Fat" ]
-# Base Method 
-# Test$Item_Fat_Content[ Test$Item_Fat_Content == "LF" & Test$Item_Fat_Content == "low fat"] <- "Low Fat"
-
-data_dt <- data_dt %>% .[ Item_Fat_Content == "reg",Item_Fat_Content := "Regular" ]
-# Convert into dataframe
-Test = data.frame(data_dt) 
-# Into factor
-Test$Item_Fat_Content <- factor( Test$Item_Fat_Content)
-levels(Test$Item_Fat_Content)
-
-
-## REplace 0 in Item_Visibility by Mean
-# Count no of zeros
-i0 = Test %>% filter( Item_Visibility == 0.0 ) %>% count(n());i0
-# Replace with mean
-Test = Test %>% mutate(Item_Visibility = replace(Item_Visibility, 
-                                                   which( Item_Visibility == 0.0),
-                                                   mean(Test$Item_Visibility)))
-
-# *************************************************************************
-
-## Replace year with corresponding number 
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 1985]<- 2013-1985
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 1987]<- 2013-1987
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 1997]<- 2013-1997
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 1998]<- 2013-1998
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 1999]<- 2013-1999
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 2002]<- 2013-2002
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 2004]<- 2013-2004
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 2007]<- 2013-2007
-Test$Outlet_Establishment_Year[Test$Outlet_Establishment_Year == 2009]<- 2013-2009
-
-# *************************************************************************
-## Convert Outlet_Size into numeric
-Test$Outlet_Size <- factor( Test$Outlet_Size)
-Test$Outlet_Size = as.numeric(Test$Outlet_Size)
-
-# Create Volume sold Column
-
-#Test <- Test %>% mutate(Item_Volume = Test$Item_Weight/Test$Item_MRP)
-
-# *************************************************************************
-str(Test)
-Test$Item_Fat_Content <- factor( Test$Item_Fat_Content)
-Test$Outlet_Location_Type <- factor( Test$Outlet_Location_Type)
-Test$Outlet_Type <- factor( Test$Outlet_Type)
-Test$Item_Type <- factor( Test$Item_Type)
-Test$Outlet_Identifier <- factor( Test$Outlet_Identifier )
-## Create One Hot Data Test
-
-# Continuous Variables
-set_1 <- Test[, c(1,2,4,6,8,9) ]
-
-# Categorical Variables
-set_2 <- Test[, c(3,5,7,10,11) ]
-
-# Converting 
-#library(caret)
-# 1)
-dummies_IFS <- predict(dummyVars(~ Item_Fat_Content, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_IFS) <- c("IFS.Low_Fat","IFS.Regular")
-head(dummies_IFS, n = 3)
-
-# # 2)
-# dummies_OS <- predict(dummyVars(~ Outlet_Size, data = set_2), 
-#                       newdata = set_2)
-# colnames(dummies_OS) <- c("OS.High", "OS.Medium", "OS.Small")
-# head(dummies_OS, n = 3)
-
-# 3)
-dummies_OLT <- predict(dummyVars(~ Outlet_Location_Type, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_OLT) <- c("OLT.Tier 1", "OLT.Tier 2", "OLT.Tier 3")
-head(dummies_OLT, n = 3)
-
-# 4)
-dummies_OT <- predict(dummyVars(~ Outlet_Type, data = set_2), 
-                      newdata = set_2)
-colnames(dummies_OT) <- c("OT.Supermarket Type1","OT.Supermarket Type2", "OT.Supermarket Type3","OT.Grocery Store")
-head(dummies_OT, n = 3)
-
-# 5)
-dummies_IT <- predict(dummyVars(~ Item_Type, data = set_2), 
-                      newdata = set_2)
-colnames(dummies_IT) <- c("Baking Goods",         "Breads"        ,        "Breakfast" ,            "Canned"      ,         
-                          "Dairy"       ,          "Frozen Foods" ,         "Fruits and Vegetables" ,"Hard Drinks",          
-                          "Health and Hygiene" ,   "Household"     ,        "Meat"        ,          "Others"      ,         
-                          "Seafood"      ,         "Snack Foods"    ,       "Soft Drinks"  ,         "Starchy Foods"   )
-head(dummies_IT, n = 3)
-
-# 6)
-dummies_OUT <- predict(dummyVars(~ Outlet_Identifier, data = set_2), 
-                       newdata = set_2)
-colnames(dummies_OUT) <- c("OUT010", "OUT013","OUT017","OUT018","OUT019",
-                           "OUT027","OUT035" ,
-                           "OUT045","OUT046", "OUT049")
-head(dummies_OUT, n = 3)
-
-set_3 <- bind_cols(data.frame(dummies_IFS),data.frame(dummies_OLT),
-                   data.frame(dummies_OT),
-                   data.frame(dummies_IT),data.frame(dummies_OUT))
-
-Test_trans <- bind_cols( set_1, set_3)
 
 ########################### SPLIT DATASET ###################################
 
