@@ -11,181 +11,128 @@ library(mlr)
 
 library(readxl)
 Train <- read_excel("Data_Train.xlsx")
-View(Train)
+Test <- read_excel("Test_set.xlsx")
+Test$Price <- NA
+All <- rbind(Train,Test)
+View(All)
 
 # Understanding Dataset ---------------------------------------------------
 
-str(Train)
-summary(Train)
-sum(is.na(Train))
+str(All)
+summary(All)
 
 # Data Manipulation -----------------------------------------------------
 
 # Droping Cloumnns
-Train <- Train[ , !(colnames(Train)) %in% c('Route','Additional_Info')]
+All <- All[ , !(colnames(All)) %in% c('Route','Additional_Info')]
 
 # With Categorical Data
 
-Train$Airline = as_factor(Train$Airline)
-Train$Source = as_factor(Train$Source)
-Train$Destination = as_factor(Train$Destination)
-Train$Total_Stops = as_factor(Train$Total_Stops)
+All$Airline = as_factor(All$Airline)
+All$Source = as_factor(All$Source)
+All$Destination = as_factor(All$Destination)
+All$Total_Stops = as_factor(All$Total_Stops)
 
 # Time and Dates
 
 ## 1)
 ## Converting string into date format
-Train$Date_of_Journey = as.Date(Train$Date_of_Journey, "%d/%m/%Y")
+All$Date_of_Journey = as.Date(All$Date_of_Journey, "%d/%m/%Y")
 ## Extracting Day of Week
-Train = Train %>% mutate(day_week = lubridate::wday(Train$Date_of_Journey, label = TRUE))
+All = All %>% mutate(day_week = lubridate::wday(All$Date_of_Journey, label = TRUE))
 
 ## 2)
 ## Converting string into date format
-Train$Dep_Time <- strptime(Train$Dep_Time, format = '%H:%M')
+All$Dep_Time <- strptime(All$Dep_Time, format = '%H:%M')
 ## Extracting hour from date
-Train$Dep_Time_hour = as.factor((lubridate::hour(Train$Dep_Time)))
+All$Dep_Time_hour = as.factor((lubridate::hour(All$Dep_Time)))
 
 
 ## 3)
 ## Extracting only time
-Train$Arrival_Time = str_sub(Train$Arrival_Time,1,5)
+All$Arrival_Time = str_sub(All$Arrival_Time,1,5)
 ## Converting string into date format
-Train$Arrival_Time <- strptime(Train$Arrival_Time, format = '%H:%M')
+All$Arrival_Time <- strptime(All$Arrival_Time, format = '%H:%M')
 ## Extracting hour from date
-Train$Arrival_Time_hour = as.factor((lubridate::hour(Train$Arrival_Time)))
+All$Arrival_Time_hour = as.factor((lubridate::hour(All$Arrival_Time)))
 
 ## 4)
 ## Duration Between Arival and Departure
-Train <- Train %>% mutate(Duration_min = abs(as.numeric(Dep_Time - Arrival_Time))/60)
+All <- All %>% mutate(Duration_min = abs(as.numeric(Dep_Time - Arrival_Time))/60)
 
 
 ## Dropping column Date_of_Journey
-Train <- Train[ , !(colnames(Train)) %in% c('Date_of_Journey')]
+All <- All[ , !(colnames(All)) %in% c('Date_of_Journey')]
 ## Dropping column Dep_Time
-Train <- Train[ , !(colnames(Train)) %in% c('Dep_Time')]
+All <- All[ , !(colnames(All)) %in% c('Dep_Time')]
 ## Dropping column Arrival_Time
-Train <- Train[ , !(colnames(Train)) %in% c('Arrival_Time')]
+All <- All[ , !(colnames(All)) %in% c('Arrival_Time')]
 ## Dropping column Duration
-Train <- Train[ , !(colnames(Train)) %in% c('Duration')]
+All <- All[ , !(colnames(All)) %in% c('Duration')]
 
 # Univariate Analysis -----------------------------------------------------
 
-a1 <- ggplot( Train ,aes(fct_infreq(Train$Airline))) + geom_bar(, fill ='red4') + coord_flip()
-a2 <- ggplot( Train ,aes(fct_infreq(Train$Source))) + geom_bar(, fill ='blue4') + coord_flip()
-a3 <- ggplot( Train ,aes(fct_infreq(Train$Destination))) + geom_bar(, fill ='orange4') + coord_flip()
-a4 <- ggplot( Train ,aes(fct_infreq(Train$Total_Stops))) + geom_bar(, fill ='deeppink4') + coord_flip()
+a1 <- ggplot( All ,aes(fct_infreq(All$Airline))) + geom_bar( fill ='red4') + coord_flip()
+a2 <- ggplot( All ,aes(fct_infreq(All$Source))) + geom_bar( fill ='blue4') + coord_flip()
+a3 <- ggplot( All ,aes(fct_infreq(All$Destination))) + geom_bar( fill ='orange4') + coord_flip()
+a4 <- ggplot( All ,aes(fct_infreq(All$Total_Stops))) + geom_bar( fill ='deeppink4') + coord_flip()
 grid.arrange( a1,a2,a3,a4, nrow = 2)
 
-a5 <- ggplot( Train ,aes(fct_infreq(Train$day_week))) + geom_bar(, fill ='coral3') + coord_flip();a5
-a6 <- ggplot( Train ,aes(fct_infreq(Train$Dep_Time_hour))) + geom_bar(, fill ='magenta3') + coord_flip()
-a7 <- ggplot( Train ,aes(fct_infreq(Train$Arrival_Time_hour))) + geom_bar(, fill ='royalblue1') + coord_flip()
+a5 <- ggplot( All ,aes(fct_infreq(All$day_week))) + geom_bar( fill ='coral3') + coord_flip();a5
+a6 <- ggplot( All ,aes(fct_infreq(All$Dep_Time_hour))) + geom_bar( fill ='magenta3') + coord_flip()
+a7 <- ggplot( All ,aes(fct_infreq(All$Arrival_Time_hour))) + geom_bar( fill ='royalblue1') + coord_flip()
 grid.arrange(a6,a7, nrow = 1)
 
-# Spread analysis of Dependent Variable
-ggplot( Train, aes(log(Train$Price))) +  geom_area(stat = 'bin', fill ='violetred4')
 
-ggplot( Train, aes(Train$Price), binwidth = 2) + 
-  geom_histogram()
+## Removing ROWS having Price greater than 20,000
+All <- subset(All, Price < 20000)
+# Spread analysis of Dependent Variable
+ggplot( data = All, aes(x=All$Price)) + 
+    geom_histogram(fill = "blue4", binwidth = 1000)+
+      scale_x_continuous(breaks = seq(0,80000, by =2000))
   
 # Skewness and Kurtosis  
 library(moments)
-skewness(Train$Price)
-kurtosis(Train$Price)
+skewness(All$Price,na.rm = TRUE)
+kurtosis(All$Price, na.rm = TRUE)
 
 # BiVariate Analysis ------------------------------------------------------
 
-b1 <- ggplot( Train, aes(x = Airline, y= Price, fill = Airline)) 
-b11 <- b1 + geom_bar( stat = "summary", fun.y = 'mean') +
-    coord_flip();b1
+b1 <- ggplot( All, aes(x = Airline, y= Price, fill = Airline)) +
+        geom_boxplot()+coord_flip();b1
 
-b12 <- b1 + geom_boxplot()+coord_flip();b12
+b2 <- ggplot( All, aes(x = Source, y= Price, fill = Source)) +
+        geom_boxplot()+coord_flip();b2
 
+b3 <- ggplot( All, aes(x = Destination, y= Price, fill = Destination)) + 
+        geom_boxplot()+coord_flip();b3
 
+b4 <- ggplot( All, aes(x = Total_Stops, y= Price, fill = Total_Stops)) + 
+        geom_boxplot()+coord_flip();b4
 
+b5 <- ggplot( All, aes(x =All$day_week , y= Price, fill = day_week)) + 
+        geom_boxplot()+coord_flip();b5
 
-b2 <- ggplot( Train, aes(x = Source, y= Price, fill = Source)) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b2
+b6 <- ggplot( All, aes(x =All$Dep_Time_hour , y= Price, fill = Dep_Time_hour )) + 
+        geom_boxplot()+coord_flip();b6
 
-b3 <- ggplot( Train, aes(x = Destination, y= Price, fill = Destination)) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b3
+b7 <- ggplot( All, aes(x =All$Arrival_Time_hour , y= Price, fill = Arrival_Time_hour)) + 
+        geom_boxplot()+coord_flip();b7
 
-b4 <- ggplot( Train, aes(x = Total_Stops, y= Price, fill = Total_Stops)) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b4
+b8 <- ggplot( All, aes(y =Duration_min , x= Price)) + 
+        geom_point(color="red4") + geom_smooth();b8
 
-b5 <- ggplot( Train, aes(x =Train$day_week , y= Price, fill = day_week)) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b5
+######################################################################
+All %>% group_by(Airline,Source,Destination) %>% summarise(n())
 
-b6 <- ggplot( Train, aes(x =Train$Dep_Time_hour , y= Price, fill = Dep_Time_hour )) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b6
-
-b7 <- ggplot( Train, aes(x =Train$Arrival_Time_hour , y= Price, fill = Arrival_Time_hour)) + 
-  geom_bar( stat = "summary", fun.y = 'mean') +
-  coord_flip();b7
+a <- table(All$Total_Stops,All$day_week)
+chisq.test(a)
 
 
+######################################################################
+Price_nor <- normalizeFeatures(All$Price ,method = "standardize")
 
-
-
-
-
-
-
-
-# Test Dataset ------------------------------------------------------
-
-Test <- read_excel("Test_set.xlsx")
-
-# Droping Cloumnns
-Test <- Test[ , !(colnames(Test)) %in% c('Route','Additional_Info')]
-
-# With Categorical Data
-
-Test$Airline = as_factor(Test$Airline)
-Test$Source = as_factor(Test$Source)
-Test$Destination = as_factor(Test$Destination)
-Test$Total_Stops = as_factor(Test$Total_Stops)
-
-# Time and Dates
-
-## 1)
-## Converting string into date format
-Test$Date_of_Journey = as.Date(Test$Date_of_Journey, "%d/%m/%Y")
-## Extracting Day of Week
-Test = Test %>% mutate(day_week = lubridate::wday(Test$Date_of_Journey, label = TRUE))
-
-## 2)
-## Converting string into date format
-Test$Dep_Time <- strptime(Test$Dep_Time, format = '%H:%M')
-## Extracting hour from date
-Test$Dep_Time_hour = as.factor((lubridate::hour(Test$Dep_Time)))
-
-
-## 3)
-## Extracting only time
-Test$Arrival_Time = str_sub(Test$Arrival_Time,1,5)
-## Converting string into date format
-Test$Arrival_Time <- strptime(Test$Arrival_Time, format = '%H:%M')
-## Extracting hour from date
-Test$Arrival_Time_hour = as.factor((lubridate::hour(Test$Arrival_Time)))
-
-## 4)
-## Duration Between Arival and Departure
-Test <- Test %>% mutate(Duration_min = abs(as.numeric(Dep_Time - Arrival_Time))/60)
-
-
-## Dropping column Date_of_Journey
-Test <- Test[ , !(colnames(Test)) %in% c('Date_of_Journey')]
-## Dropping column Dep_Time
-Test <- Test[ , !(colnames(Test)) %in% c('Dep_Time')]
-## Dropping column Arrival_Time
-Test <- Test[ , !(colnames(Test)) %in% c('Arrival_Time')]
-## Dropping column Duration
-Test <- Test[ , !(colnames(Test)) %in% c('Duration')]
+sum(is.na(All$Price))
 
 # Split Dataset ------------------------------------------------------
 Train = as.data.frame(Train)
@@ -238,7 +185,7 @@ model_Params <- makeParamSet(
   makeIntegerParam("ntree",lower = 500, upper = 1500),
   makeIntegerParam("mtry",lower = 2, upper = 12),
   makeIntegerParam("maxnodes",lower = 20, upper = 50)
-)
+  )
 
 # Define model tuning algorithm ~ Random tune algorithm
 # Random Search on the space
@@ -294,15 +241,5 @@ getSelectedAttributes(final.boruta, withTentative = F)
 boruta.df <- attStats(final.boruta)
 
 rejected_col <- boruta.df %>% select(boruta.df$decision = "Rejected")
-
-
-####################################################
-
-library(arules)
-
-rules <- apriori(Train,parameter = list(support = .01,conf = 0.8))
-rules_conf <- sort(rules, by="confidence",decreasing = TRUE)
-p=as.data.frame(inspect(head(rules_conf)))
-
 
 

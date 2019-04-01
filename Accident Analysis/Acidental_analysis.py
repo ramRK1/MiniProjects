@@ -6,7 +6,6 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore")
 # when you want graphs in a separate window 
-
 # %matplotlib inline
 # when you want an inline plot
 # *******************************************************************
@@ -29,14 +28,12 @@ Accident.shape
 Accident.dtypes
 # Summary of the Dataset
 describe=pd.DataFrame(Accident.describe())
-# Null Values in the Dataset
-null_values = pd.DataFrame(Accident.isnull().sum()/Accident.shape[0])
 
 # *******************************************************************
 # *******************************************************************
 
 ## Univariate Analysis
-# Analysing target variable
+# Analysing targetx variable
 Accident['Accident_Severity'].value_counts(normalize = True).plot.bar()
 
 # ****************************************************************
@@ -49,9 +46,6 @@ plt.subplot(222)
 Accident['Pedestrian_Crossing-Physical_Facilities'].value_counts(normalize = True).plot.bar(title = 'Pedestrian_Crossing-Physical_Facilities')
 #plt.show()
 plt.subplot(223)
-Accident['Day_of_Week'].value_counts(normalize = True).plot.bar(title = 'Day_of_week')
-#plt.show()
-plt.subplot(224)
 Accident['Light_Conditions'].value_counts(normalize = True).plot.bar(title = 'Light_Conditions')
 plt.show()
 # ****************************************************************
@@ -112,6 +106,36 @@ plt.subplot(222)
 Accident['2nd_Road_Number'].plot.box( patch_artist=True,figsize=(16,5)) 
 plt.show()
 
+# *******************************************************************
+# *******************************************************************
+
+# Date AND Time
+
+# Converting Date -> DataType
+Accident.Date = pd.to_datetime(Accident.Date)
+# Extracting Year From Date
+Accident.Date[1].year
+# Pandas.apply allow the users to pass a function and 
+## apply it on every single value of the Pandas series.
+Accident['Date_Year'] = Accident.Date.apply(lambda x: x.year)
+Accident['Date_Month'] = Accident.Date.apply(lambda x: x.month)
+
+
+# Converting Time -> DataType
+Accident.Time = pd.to_datetime(Accident.Time)
+Accident['Time_Hour'] = Accident.Time.apply(lambda x: x.hour)
+
+# Ploting
+plt.figure(1) 
+plt.subplot(221) 
+Accident['Date_Year'].value_counts(normalize = True).plot.bar(figsize=(20,10),title = 'Date_Year')
+plt.subplot(222)
+Accident['Date_Month'].value_counts(normalize = True).plot.bar(figsize=(20,10),title = 'Date_Month')
+plt.subplot(223)
+Accident['Day_of_Week'].value_counts(normalize = True).plot.bar(title = 'Day_of_week')
+plt.subplot(224)
+Accident['Time_Hour'].value_counts(normalize = True).plot.bar(figsize=(20,10),title = 'Time_Hour')
+plt.show()
 
 # *******************************************************************
 # *******************************************************************
@@ -279,21 +303,44 @@ for i in range(4):
 
 Did_Police_Officer_Attend_Scene_of_Accident.plot(kind="bar", stacked=True, figsize=(4,4))
 
+# Date_Month
+Date_Month_Accident = pd.crosstab(Accident.Date_Month,Accident.Accident_Severity)
+for i in range(12):
+    Date_Month_Accident.iloc[i] = Date_Month_Accident.iloc[i,:]/Date_Month_Accident.iloc[i].sum()
+
+Date_Month_Accident.plot(kind="bar", stacked=True, figsize=(4,4))
+
+
 # *******************************************************************
 # *******************************************************************
 
 # Correlation Matrix
-matrix = Accident.corr() 
-f, ax = plt.subplots(figsize=(9, 6)) 
-sns.heatmap(matrix, vmax=.8, square=True, cmap="BuPu");
+corr = Accident.corr() 
 
+#Generating a mask for the upper triangle
+mask = np.zeros_like(corr, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+
+#Setting up the matplotlib figure
+f, ax = plt.subplots(figsize=(8,8))
+
+#Generating a custom diverging colormap
+cmap = sns.diverging_palette(220,10, as_cmap=True)
+
+#Drawing the heatmap with the mask
+sns.heatmap(corr, cmap=cmap, square=True,mask=mask, linewidths=.5, cbar_kws={"shrink": .5}, ax=ax)
+
+plt.title("Correlation Matrix")
+plt.show()
 # *******************************************************************
 # *******************************************************************
 
 # Missing Value Treatment
 
 # Count of Missing Values
-Accident.isnull().sum()
+null_percent = Accident.isnull().sum()/Accident.shape[0]
+null_total = Accident.isnull().sum()
+missing_value = pd.concat([null_total,null_percent],axis = 1,keys=['null_total','null_percentage'])
 
 # Dropping rows containing any missing values
 Accident = Accident.dropna()

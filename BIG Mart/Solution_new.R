@@ -13,140 +13,185 @@ Test <- read_csv("Test.csv")
 
 # Understanding Dataset ---------------------------------------------------
 
+# Dimension of Data
+dim(Train);dim(Test)
+# feature names of datasets
+names(Train);names(Test)
+# Structure of Dataset
 str(Train)
-summary(Train)
+str(Test)
 
-# Data Manipulation ---------------------------------------------------
+# Combining Test and Train Dataset
+Test$Item_Outlet_Sales = NA
+All <- rbind(Train,Test)
+
+# Structure of Dataset
+str(All)
+
+# Univariate Analysis ---------------------------------------------------
 
 # 1)
-# Convert factor in character [Item_Fat_Content]
-Train$Item_Fat_Content <- as_factor( Train$Item_Fat_Content)
-# check levels
-levels(Train$Item_Fat_Content) 
-
-# replace LF,low fat with Low Fat
-levels( Train$Item_Fat_Content)[1:2] <- "Low Fat"
-
-# replace ref with Regular
-levels( Train$Item_Fat_Content )[2] <- "Regular"
-
-# 2)
-# Since no item product can have zero visibility
-## Replace 0 in Item_Visibility by Mean
-# Count no of zeros
-Train %>% filter( Item_Visibility == 0.0 ) %>% count(n())
-# Replace with mean
-Train = Train %>% mutate(Item_Visibility = replace(Item_Visibility, 
-                                                   which( Item_Visibility == 0.0),
-                                                   mean(Train$Item_Visibility)))
-# 3)
-Train$Item_Type <- factor(Train$Item_Type)
-levels(Train$Item_Type)
-
-# 4)
-# Get unique years
-sort(unique(Train$Outlet_Establishment_Year))
-## Replace year with corresponding number 
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1985]<- 2018-1985
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1987]<- 2018-1987
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1997]<- 2018-1997
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1998]<- 2018-1998
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 1999]<- 2018-1999
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2002]<- 2018-2002
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2004]<- 2018-2004
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2007]<- 2018-2007
-Train$Outlet_Establishment_Year[Train$Outlet_Establishment_Year == 2009]<- 2018-2009
-
-# 5)
-## Convert Outlet_Size into numeric
-Train$Outlet_Size <- factor( Train$Outlet_Size)
-levels(Train$Outlet_Size)
-
-Train$Outlet_Location_Type <- factor( Train$Outlet_Location_Type)
-levels(Train$Outlet_Location_Type)
-
-Train$Outlet_Type <- factor( Train$Outlet_Type)
-levels(Train$Outlet_Type)
-
-# Univariate Analysis -----------------------------------------------------
-
-# Spread Analysis Continuous Variables
-p41 <- ggplot(Train, aes(Item_Weight)) +
-  geom_area(stat = "bin" , fill = "springgreen4", na.rm = TRUE,binwidth = 2)
-p42 <- ggplot(Train, aes(Item_MRP)) +
-  geom_area(stat = "bin" , fill = "purple4", na.rm = TRUE,binwidth = 5)
-p43 <- ggplot(Train, aes(Item_Visibility)) +
-  geom_area(stat = "bin" , fill = "darkorange4", na.rm = TRUE)
-p44 <- ggplot(Train, aes(Outlet_Establishment_Year)) +
-  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE,binwidth = 2)
-
-grid.arrange(
-  p41,p42,p43,p44, nrow = 2,
-  top = "Spread Check")
-
-#********************************************************************
-# Spread Analysis Categorical Variables
-p51 <- ggplot(Train, aes(Outlet_Type)) +
-  geom_bar(fill = "springgreen4", na.rm = TRUE)
-p52 <- ggplot(Train, aes(Outlet_Location_Type )) +
-  geom_bar(fill = "purple4", na.rm = TRUE)
-p53 <- ggplot(Train, aes(Outlet_Size)) +
-  geom_bar(fill = "darkorange4", na.rm = TRUE)
-p54 <- ggplot(Train, aes(Item_Fat_Content)) +
-  geom_bar(fill = "deepskyblue4", na.rm = TRUE)
-
-
-grid.arrange(
-  p51,p52,p53,p54, nrow = 2,
-  top = "Spread Check")
-
-#********************************************************************
-
-# Spread Analysis Dependent Variables
+## Target Variable
 ggplot(Train, aes(Item_Outlet_Sales)) +
-  geom_area(stat = "bin" , fill = "deepskyblue4", na.rm = TRUE)
+  geom_histogram(binwidth = 100, fill = "cadetblue4") + 
+    scale_x_continuous(breaks = seq(0,14000, by =1000))
+
+# Dropping rows having sale price > 8500
+Train <- subset(Train, Item_Outlet_Sales < 8000)
 
 # Skewness and Kurtosis  
 library(moments)
 skewness(Train$Item_Outlet_Sales)
 kurtosis(Train$Item_Outlet_Sales)
 
-# BiVariate Analysis ------------------------------------------------------
+# Since the Variable is Highly Positively Skewed 
+# Therefore applying Transformation
+Train$Item_Outlet_Sales <- sqrt(Train$Item_Outlet_Sales)
+skewness(Train$Item_Outlet_Sales)
+hist(Train$Item_Outlet_Sales)
 
-# Continuous Vs Target Variable
-p61 <- ggplot(Train, aes(Train$Item_Weight,Train$Item_Outlet_Sales))+
-  geom_point(colour = 'red4') + geom_smooth(method =lm,span =0.8)
+# ***********************************************************************
+
+# 2)
+ggplot(All, aes(Item_Visibility)) +
+  geom_histogram( fill = "darkorange4", na.rm = TRUE)+ 
+  scale_x_continuous(breaks = seq(0,0.5, by =0.05))
   
-p62 <- ggplot(Train, aes(Train$Item_Visibility,Train$Item_Outlet_Sales))+
-  geom_point(colour = 'purple4') + geom_smooth(method =lm,span =0.8)
 
-p63 <- ggplot(Train, aes(Train$Item_MRP,Train$Item_Outlet_Sales))+
-  geom_point(colour = 'navy') + geom_smooth(method =lm,span =0.8)
+# Since no item product can have zero visibility
+## Replace 0 in Item_Visibility by Mean
+# Count no of zeros
+All %>% filter( Item_Visibility == 0.0 ) %>% count(n())
+# Replace with mean
+All = All %>% mutate(Item_Visibility = replace(Item_Visibility, 
+                                                   which( Item_Visibility == 0.0),
+                                                   mean(Train$Item_Visibility)))
 
-p64 <- ggplot(Train, aes(Train$Outlet_Establishment_Year,Train$Item_Outlet_Sales))+
-  geom_point(colour = 'green4') + geom_smooth(method =lm,span =0.8)
+skewness(All$Item_Visibility)
+# Since the Variable is Highly Positively Skewed 
+# Therefore applying Transformation
+Train$Item_Visibility <- sqrt(Train$Item_Visibility)
+skewness(Train$Item_Visibility)
+hist(Train$Item_Visibility)
+
+#********************************************************************
+
+# 3)
+ggplot(All, aes(Item_Weight)) +
+  geom_histogram( fill = "springgreen4", na.rm = TRUE,binwidth = 0.5)+ 
+    scale_x_continuous(breaks = seq(0,25, by =2.5))
+
+# 4)
+ggplot(All, aes(Item_MRP)) +
+  geom_histogram( fill = "purple4", na.rm = TRUE,binwidth = 5)+ 
+    scale_x_continuous(breaks = seq(0,300, by =25))
+
+#********************************************************************
+
+# 5)
+ggplot(All, aes(Item_Fat_Content,fill = Item_Fat_Content)) +
+  geom_bar(na.rm = TRUE)
+
+# Convert factor in character [Item_Fat_Content]
+All$Item_Fat_Content <- as_factor(All$Item_Fat_Content)
+# check levels
+levels(All$Item_Fat_Content) 
+
+# replace LF,low fat with Low Fat
+levels( All$Item_Fat_Content)[3:4] <- "Low Fat"
+# replace ref with Regular
+levels( All$Item_Fat_Content )[3] <- "Regular"
+
+# ******************************************************************
+
+# 6)
+All$Item_Type <- factor(All$Item_Type)
+levels(Train$Item_Type)
+
+ggplot(All, aes(Item_Type,fill = Item_Type)) +
+  geom_bar( na.rm = TRUE)+
+    coord_flip()
+
+# ******************************************************************
+
+# 7)
+# Get unique years
+  sort(unique(All$Outlet_Establishment_Year))
+  ## Replace year with corresponding number 
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 1985]<- 2018-1985
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 1987]<- 2018-1987
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 1997]<- 2018-1997
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 1998]<- 2018-1998
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 1999]<- 2018-1999
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 2002]<- 2018-2002
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 2004]<- 2018-2004
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 2007]<- 2018-2007
+  All$Outlet_Establishment_Year[All$Outlet_Establishment_Year == 2009]<- 2018-2009
+
+  
+# ******************************************************************
+
+# 8,9,10)
+All$Outlet_Size <- factor( All$Outlet_Size)
+levels(All$Outlet_Size)
+
+All$Outlet_Location_Type <- factor( All$Outlet_Location_Type)
+levels(All$Outlet_Location_Type)
+
+All$Outlet_Type <- factor( All$Outlet_Type)
+levels(All$Outlet_Type)
+
+p51 <- ggplot(All, aes(Outlet_Type)) +
+  geom_bar(fill = "springgreen4", na.rm = TRUE)
+p52 <- ggplot(All, aes(Outlet_Location_Type )) +
+  geom_bar(fill = "purple4", na.rm = TRUE)
+p53 <- ggplot(All, aes(Outlet_Size)) +
+  geom_bar(fill = "darkorange4", na.rm = TRUE)
 
 grid.arrange(
-  p61,p62,p63,p64, nrow = 2,
-  top = "Continuous Vs Target Variable")
+  p51,p52,p53, nrow = 1,
+  top = "Spread Check")
+
+# BiVariate Analysis ------------------------------------------------------
+
+# Taking out Train Set
+train = All[1:nrow(Train),]
+train$Item_Outlet_Sales = Train$Item_Outlet_Sales
+
+
+# Continuous Vs Target Variable
+p61 <- ggplot(train, aes(Item_Weight,Item_Outlet_Sales))+
+  geom_point(colour = 'cadetblue4',alpha=0.3) #+ geom_smooth(method =lm,span =0.8) 
+  
+p62 <- ggplot(train, aes(Item_Visibility,Item_Outlet_Sales))+
+  geom_point(colour = 'darkseagreen4',alpha=0.3) #+ geom_smooth(method =lm,span =0.8)
+
+p63 <- ggplot(train, aes(Item_MRP,Item_Outlet_Sales))+
+  geom_point(colour = 'deepskyblue3',alpha=0.3) #+ geom_smooth(method =lm,span =0.8)
+
+grid.arrange(
+          p61,
+          arrangeGrob(p62,p63,ncol = 2),
+          nrow = 2,
+          top = "Continuous Vs Target Variable")
 
 #********************************************************************
 
 # Discrete Vs Target Variable
-p21 <- ggplot(Train,aes(Train$Item_Fat_Content, Train$Item_Outlet_Sales, fill = Train$Item_Fat_Content)) + 
+p21 <- ggplot(train,aes(train$Item_Fat_Content, train$Item_Outlet_Sales, fill = train$Item_Fat_Content)) + 
   geom_boxplot() + coord_flip()
-p23 <- ggplot(Train,aes(Train$Outlet_Size, Train$Item_Outlet_Sales, fill = Train$Outlet_Size)) + 
+p23 <- ggplot(train,aes(train$Outlet_Size, train$Item_Outlet_Sales, fill = train$Outlet_Size)) + 
   geom_boxplot() + coord_flip()
-p24 <- ggplot(Train,aes(Train$Outlet_Location_Type, Train$Item_Outlet_Sales, fill = Train$Outlet_Location_Type)) + 
+p24 <- ggplot(train,aes(train$Outlet_Location_Type, train$Item_Outlet_Sales, fill = train$Outlet_Location_Type)) + 
   geom_boxplot() + coord_flip()
-p25 <- ggplot(Train,aes(Train$Outlet_Type, Train$Item_Outlet_Sales, fill = Train$Outlet_Type)) + 
+p25 <- ggplot(train,aes(train$Outlet_Type, train$Item_Outlet_Sales, fill = train$Outlet_Type)) + 
   geom_boxplot() + coord_flip()
 
 grid.arrange(
   p21,p25,p23,p24, nrow = 2,
   top = "Discrete Vs Target Variable")
 
-p22 <- ggplot(Train,aes(Train$Item_Type, Train$Item_Outlet_Sales, fill = Train$Item_Type)) + 
+p22 <- ggplot(train,aes(train$Item_Type, train$Item_Outlet_Sales, fill = train$Item_Type)) + 
   geom_boxplot() + coord_flip();p22
 
 # Correlation Matrix ------------------------------------------------------

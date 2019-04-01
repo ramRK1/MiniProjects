@@ -1,0 +1,286 @@
+---
+title: "Big Mart Sales Prediction"
+output: html_notebook
+---
+
+The data scientists at BigMart have collected sales data for 1559 products across 10 stores in different cities for the year 2013. Now each product has certain attributes that sets it apart from other products. Same is the case with each store.
+
+The aim is to build a predictive model to find out the sales of each product at a particular store so that it would help the decision makers at BigMart to find out the properties of any product or store, which play a key role in increasing the overall sales.
+
+## Loading Packages
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readr)
+library(gridExtra)
+library(randomForest)
+library(caret)
+library(mlr)
+```
+
+## Importing Data
+```{r}
+Train <- read_csv("Train.csv")
+Test <- read_csv("Test.csv")
+```
+
+### Understanding Dataset
+```{r}
+# Dimension of Data
+dim(Train)
+dim(Test)
+
+# Structure of Data
+str(Train)
+str(Test)
+```
+
+### Combining Test and Train Dataset
+```{r}
+Test$Item_Outlet_Sales = NA
+All <- rbind(Train,Test)
+str(All)
+```
+## **Data Visualization**
+
+## **Univariate Analysis**
+### Target Variable
+Since our target variable is continuous, we can visualise it by plotting its histogram.
+```{r}
+ggplot(Train, aes(Item_Outlet_Sales)) +
+  geom_histogram(binwidth = 100, fill = "cadetblue4") + 
+    scale_x_continuous(breaks = seq(0,14000, by =1000))
+```
+As you can see, it is a right skewd variable and would need some data transformation to treat its skewness.
+
+## Independent Variables (Continuous)
+```{r warning=FALSE}
+p11 <-ggplot(All, aes(Item_Weight)) +
+      geom_histogram( fill = "springgreen4", na.rm = TRUE,binwidth = 0.5)+ 
+      scale_x_continuous(breaks = seq(0,25, by =2.5))
+
+p12 <-ggplot(All, aes(Item_Visibility)) +
+      geom_histogram( fill = "darkorange4", na.rm = TRUE)+ 
+      scale_x_continuous(breaks = seq(0,0.5, by =0.05))
+
+p13 <-ggplot(All, aes(Item_MRP)) +
+      geom_histogram( fill = "purple4", na.rm = TRUE,binwidth = 5)+ 
+      scale_x_continuous(breaks = seq(0,300, by =25))
+
+grid.arrange(
+          p11,p12,p13,nrow = 1,
+          top = "Continuous Variable")
+```
+ * Observations
+ * Item_MRP has clear cuts, i.e we can see 4 different distributions
+ * Item_Visibility is right-skewed and should be transformed
+ * No pattern in Item_Weight
+ 
+## Independent Variables (Categorical)
+```{r}
+ggplot(All, aes(Item_Fat_Content,fill = Item_Fat_Content)) +
+  geom_bar(na.rm = TRUE) + ggtitle("Original Item Fat Content")
+
+# Convert factor in character [Item_Fat_Content]
+All$Item_Fat_Content <- as_factor(All$Item_Fat_Content)
+# check levels
+levels(All$Item_Fat_Content) 
+
+# replace LF,low fat with Low Fat
+levels( All$Item_Fat_Content)[3:4] <- "Low Fat"
+# replace ref with Regular
+levels( All$Item_Fat_Content )[3] <- "Regular"
+
+ggplot(All, aes(Item_Fat_Content,fill = Item_Fat_Content)) +
+  geom_bar(na.rm = TRUE) + ggtitle("Modified Item Fat Content")
+```
+As here we can see Low Fat content item is sold more than the regular item
+```{r}
+ggplot(All, aes(fct_infreq(Item_Type),fill = Item_Type)) +
+  geom_bar( na.rm = TRUE)+ xlab("Item Type") + 
+    coord_flip()
+```
+```{r}
+p21 <- ggplot(All, aes(Outlet_Type)) +
+        geom_bar(fill = "springgreen4", na.rm = TRUE) + 
+          theme(axis.text.x = element_text(angle = 20, hjust = 1))
+p22 <- ggplot(All, aes(Outlet_Location_Type )) +
+        geom_bar(fill = "purple4", na.rm = TRUE)
+p23 <- ggplot(All, aes(Outlet_Size)) +
+        geom_bar(fill = "darkorange4", na.rm = TRUE)
+p24 <- ggplot(All, aes(factor(Outlet_Establishment_Year))) +
+        geom_bar(fill = "darkorange4", na.rm = TRUE) + 
+          theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+            xlab("Outlet Establishment Year")
+grid.arrange(p21,p22,p23,p24, nrow = 2,
+        top = "Categorical variable")
+```
+* Obsevations
+* People likes to go Supermarket Type I the most
+* Large no. of missing values in Outlet Size
+
+## **Bivariate Analysis**
+
+Extracting train data from the All Data
+```{r}
+Train = All[1:nrow(Train),]
+```
+
+### Target Variable vs Independent Continuous Variables
+```{r}
+# Continuous Vs Target Variable
+p61 <- ggplot(Train, aes(Item_Weight,Item_Outlet_Sales))+
+        geom_point(colour = 'cadetblue4',alpha=0.3) 
+  
+p62 <- ggplot(Train, aes(Item_Visibility,Item_Outlet_Sales))+
+        geom_point(colour = 'darkseagreen4',alpha=0.3) 
+
+p63 <- ggplot(Train, aes(Item_MRP,Item_Outlet_Sales))+
+        geom_point(colour = 'deepskyblue3',alpha=0.3)
+
+grid.arrange(
+          p61,
+          arrangeGrob(p62,p63,ncol = 2),
+          nrow = 2,
+          top = "Continuous Vs Target Variable")
+```
+* Observations
+* Item_Outlet_Sales is spread well across the entire range of the Item_Weight  without any obvious pattern.
+* In Item_Visibility vs Item_Outlet_Sales, there is a string of points at Item_Visibility = 0.0 which seems strange as item visibility cannot be completely zero. 
+* In Item_MRP vs Item_Outlet_Sales, we can clearly see 4 segments of prices 
+
+### Target Variable vs Independent Categorical Variables
+
+```{r}
+# Discrete Vs Target Variable
+p21 <- ggplot(Train,aes(Item_Fat_Content,Item_Outlet_Sales, fill = Item_Fat_Content)) + geom_boxplot()
+p23 <- ggplot(Train,aes(Outlet_Size, Item_Outlet_Sales, fill = Outlet_Size)) + 
+        geom_boxplot()
+p24 <- ggplot(Train,aes(Outlet_Location_Type, Item_Outlet_Sales, fill = Outlet_Location_Type)) + 
+        geom_boxplot()
+p25 <- ggplot(Train,aes(Outlet_Type, Item_Outlet_Sales, fill = Outlet_Type)) + 
+        geom_boxplot()
+
+grid.arrange(
+  p21,p25,p23,p24, nrow = 2,
+  top = "Discrete Vs Target Variable")
+
+```
+
+```{r}
+ggplot(Train,aes(Item_Type,Item_Outlet_Sales, fill = Item_Type)) + 
+  geom_boxplot() + coord_flip()
+
+```
+As in the above BOX Plots we can see that there are many outliers, therefore we have treat them later.
+### Correlation Between Variables
+```{r warning=FALSE}
+# Continuous vs Target Variables
+library(GGally)
+ggcorr(Train, label = TRUE, size = 3)
+
+
+
+```
+
+## **Data Preprocessing**
+
+### Missing Value Treatment
+```{r}
+# Getting missing value percentage
+missing_val <- as.data.frame(sapply(All[,-c(12)], function(x) sum(is.na(x))/nrow(All[,-c(12)]) ))
+
+# Renaming Column
+colnames(missing_val) <- c("percent")
+missing_val$col <-as.factor(row.names(missing_val))
+missing_val <- subset( missing_val, percent > 0.0)
+
+ggplot(missing_val, aes(y = percent,x = col, fill = col)) + 
+  geom_bar(stat = "identity") + scale_y_continuous(breaks = seq(0,1, by =0.05))
+
+# Since there are more than 28% missing values in Outlet Size, therefore Dropping it.
+All <- All[,-9]
+
+# Replace Missing vaues in Item_Weight in mean
+All = All %>% mutate_at(vars(Item_Weight),~ifelse(is.na(.x), mean(.x, na.rm = TRUE), .x))
+
+# Total missing Values
+sum(is.na(All[,-c(11)]))
+```
+
+### Replacing 0's in Item_Visibility variable
+As there can be no variable whose **Visibility** could be zero. Therefore imputing it with mean.
+```{r}
+# Since no item product can have zero visibility
+ggplot(All, aes(Item_Visibility)) +
+  geom_histogram( fill = "steelblue4", , bins = 100)+ 
+  scale_x_continuous(breaks = seq(0,0.5, by =0.05)) + ggtitle("Before Replacing")
+
+## Replace 0 in Item_Visibility by Mean
+# Count no of zeros
+All %>% filter( Item_Visibility == 0.0 ) %>% count(n())
+# Replace with mean
+All = All %>% mutate(Item_Visibility = replace(Item_Visibility, 
+                                                   which( Item_Visibility == 0.0),
+                                                   mean(Train$Item_Visibility)))
+
+ggplot(All, aes(Item_Visibility)) +
+  geom_histogram( fill = "steelblue4", , bins = 100)+ 
+  scale_x_continuous(breaks = seq(0,0.5, by =0.05))+ ggtitle("After Replacing")
+```
+
+### Outlier Treatment
+
+Here we are using "Box Plot Rule" to detect and remove Outliers
+```{r}
+ggplot(Train, aes(x= "", y=Item_Outlet_Sales )) +
+  geom_boxplot(outlier.colour = "red",aes(color = Item_Fat_Content))
+  geom_boxplot(outlier.colour = "blue",aes(color = Outlet_Location_Type))
+  
+```
+
+```{r}
+ggplot(Train, aes(Item_Outlet_Sales)) +
+  geom_histogram(binwidth = 100, fill = "cadetblue4") + 
+    scale_x_continuous(breaks = seq(0,14000, by =1000)) +
+      ggtitle("Original Plot")
+
+# Ckecking Skewness and kurtosis
+library(moments)
+skewness(Train$Item_Outlet_Sales)
+kurtosis(Train$Item_Outlet_Sales)
+
+```
+* If Skewness nearly equal to zero then it means data is normally distributed 
+
+```{r}
+Train_r = Train %>%  filter(Item_Outlet_Sales < 7500)
+
+ggplot(Train_r, aes(Item_Outlet_Sales)) +
+  geom_histogram(binwidth = 50, fill = "cadetblue4") + 
+    scale_x_continuous(breaks = seq(0,14000, by =1000)) +
+      ggtitle("Modified Plot")
+
+library(moments)
+skewness(Train_r$Item_Outlet_Sales)
+kurtosis(Train_r$Item_Outlet_Sales)
+
+```
+Since our data is highly skewed, Therfore We will apply data trainsformation techniques to transform our data.
+```{r}
+Train_r$Item_Outlet_Sales = sqrt(Train_r$Item_Outlet_Sales)
+skewness(Train_r$Item_Outlet_Sales)
+
+ggplot(Train_r, aes(Item_Outlet_Sales)) +
+  geom_histogram(binwidth = 0.8, fill = "cadetblue4") + 
+    scale_x_continuous(breaks = seq(0,90, by =10)) +
+      ggtitle("Modified Plot")
+
+ggplot(Train_r, aes(sample = Item_Outlet_Sales)) + geom_qq() +geom_qq_line()  
+```
+
+
+
+
+
+
+ 
