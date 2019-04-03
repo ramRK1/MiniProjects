@@ -1,6 +1,9 @@
 ---
 title: "Big Mart Sales Prediction"
-output: html_notebook
+output: 
+  html_notebook: 
+    fig_height: 8.5
+    fig_width: 10
 ---
 
 The data scientists at BigMart have collected sales data for 1559 products across 10 stores in different cities for the year 2013. Now each product has certain attributes that sets it apart from other products. Same is the case with each store.
@@ -66,8 +69,19 @@ p13 <-ggplot(All, aes(Item_MRP)) +
       geom_histogram( fill = "purple4", na.rm = TRUE,binwidth = 5)+ 
       scale_x_continuous(breaks = seq(0,300, by =25))
 
+
+
+p31 <- ggplot(All, aes(x= 'Item Weight',y=Item_Weight)) +
+          geom_boxplot(outlier.colour = "red4")
+
+p32 <- ggplot(All, aes(x= 'Item_Visibility',y=Item_Visibility)) +
+          geom_boxplot(outlier.colour = "red4")
+
+p33 <- ggplot(All, aes(x= 'Item_MRP',y=Item_MRP)) +
+          geom_boxplot(outlier.colour = "red4")
+
 grid.arrange(
-          p11,p12,p13,nrow = 1,
+          p11,p12,p13,p31,p32,p33,nrow = 2,
           top = "Continuous Variable")
 ```
  * Observations
@@ -141,12 +155,26 @@ grid.arrange(
           p61,
           arrangeGrob(p62,p63,ncol = 2),
           nrow = 2,
-          top = "Continuous Vs Target Variable")
+          top = "Continuous Vs Target Variable SCATTER PLOT")
+
+p71 <- ggplot(All, aes(x=Item_Weight,y=Item_Outlet_Sales)) +
+          geom_boxplot(outlier.colour = "red4")
+
+p72 <- ggplot(All, aes(x= Item_Visibility,y=Item_Outlet_Sales)) +
+          geom_boxplot(outlier.colour = "red4")
+
+p73 <- ggplot(All, aes(x= Item_MRP,y=Item_Outlet_Sales)) +
+          geom_boxplot(outlier.colour = "red4")
+
+grid.arrange(
+          p71,p72,p73,nrow = 2,
+          top = "Continuous Vs Target Variable BOX PLOT")
 ```
 * Observations
 * Item_Outlet_Sales is spread well across the entire range of the Item_Weight  without any obvious pattern.
 * In Item_Visibility vs Item_Outlet_Sales, there is a string of points at Item_Visibility = 0.0 which seems strange as item visibility cannot be completely zero. 
-* In Item_MRP vs Item_Outlet_Sales, we can clearly see 4 segments of prices 
+* In Item_MRP vs Item_Outlet_Sales, we can clearly see 4 segments of prices
+* Extreme values are encounted in all Box Plots
 
 ### Target Variable vs Independent Categorical Variables
 
@@ -171,7 +199,7 @@ ggplot(Train,aes(Item_Type,Item_Outlet_Sales, fill = Item_Type)) +
   geom_boxplot() + coord_flip()
 
 ```
-As in the above BOX Plots we can see that there are many outliers, therefore we have treat them later.
+As in the above BOX Plots we can see that there are many Extreme Values, therefore we have treat them later.
 ### Correlation Between Variables
 ```{r warning=FALSE}
 # Continuous vs Target Variables
@@ -195,7 +223,7 @@ missing_val$col <-as.factor(row.names(missing_val))
 missing_val <- subset( missing_val, percent > 0.0)
 
 ggplot(missing_val, aes(y = percent,x = col, fill = col)) + 
-  geom_bar(stat = "identity") + scale_y_continuous(breaks = seq(0,1, by =0.05))
+  geom_bar(stat = "identity") + scale_y_continuous(breaks = seq(0,1, by =0.05)) +   ggtitle("Missing Values")
 
 # Since there are more than 28% missing values in Outlet Size, therefore Dropping it.
 All <- All[,-9]
@@ -230,17 +258,23 @@ ggplot(All, aes(Item_Visibility)) +
 
 ### Outlier Treatment
 
-Here we are using "Box Plot Rule" to detect and remove Outliers
-```{r}
-ggplot(Train, aes(x= "", y=Item_Outlet_Sales )) +
-  geom_boxplot(outlier.colour = "red",aes(color = Item_Fat_Content))
-  geom_boxplot(outlier.colour = "blue",aes(color = Outlet_Location_Type))
+* Mathematically, an **outlier** is usually defined as an observation more than three standard deviations from the mean (although sometimes you'll see 2.5 or 2 as well)
+```{r warning=FALSE}
+#Here, we will use scores from outliers package to quickly calculate the z-score for every value in a specific column of our data frame.
+
+library(outliers)
+outlier_Item_Outlet_Sales = scores(Train$Item_Outlet_Sales)
+Train$outlier_Item_Outlet_Sales <- outlier_Item_Outlet_Sales > 3 | outlier_Item_Outlet_Sales < -3
   
+Train$outlier_Item_Outlet_Sales[outlier_Item_Outlet_Sales == FALSE] == 0
+
+ggplot(Train, aes(y=Item_Outlet_Sales,x=Item_MRP,fill = outlier_Item_Outlet_Sales)) + 
+  geom_point()
 ```
 
 ```{r}
 ggplot(Train, aes(Item_Outlet_Sales)) +
-  geom_histogram(binwidth = 100, fill = "cadetblue4") + 
+  geom_histogram(binwidth = 100, fill = "cadet blue4") + 
     scale_x_continuous(breaks = seq(0,14000, by =1000)) +
       ggtitle("Original Plot")
 
